@@ -23,7 +23,7 @@ export const updateInputHistory = (newContent: string, inputHistory: string[]) =
     !inputHistory[0]?.startsWith(newContent) &&
     !inputHistory.includes(newContent);
 
-  const shouldUpdateLastHistory = inputHistory[0]?.startsWith(newContent);
+  const shouldUpdateLastHistory = newContent.startsWith(inputHistory[0]);
 
   return (
     shouldAppendHistory && shouldUpdateLastHistory
