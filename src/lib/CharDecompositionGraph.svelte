@@ -1,21 +1,8 @@
 <script lang="ts">
-  import { getColorFilter } from './utils';
+  import { getColor, getColorFilter } from './utils';
 
   export let char: string;
   export let parts: string;
-
-  const charColors = [
-    // blue
-    '#423BE0',
-    // red
-    '#E31B36',
-    // green2
-    '#1E9423',
-    // orange
-    '#DB993D',
-    // green1
-    '#63E7F0'
-  ];
 </script>
 
 <figure class="relative mt-12" style="width: 270px; height: 192px;">
@@ -35,6 +22,6 @@
 </figure>
 <div class="flex justify-center items-center">
   {#each parts.split('') as c, i}
-    <div class="text-2xl mt-4 mb-12 mx-2" style={`color: ${charColors[i]};`}>{c}</div>
+    <div class="text-2xl mt-4 mb-12 mx-2" style={`color: ${getColor(i)};`}>{c}</div>
   {/each}
 </div>
