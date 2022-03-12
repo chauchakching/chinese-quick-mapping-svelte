@@ -37,7 +37,6 @@
   let inputHistory: string[] = browser
     ? JSON.parse(localStorage.getItem('inputHistory') || '[]')
     : [];
-  $: console.log('input history', inputHistory);
 
   // update input history on user input change (ignore default text)
   let inputChanged = false;
