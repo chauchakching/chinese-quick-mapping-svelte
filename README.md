@@ -1,40 +1,31 @@
-# create-svelte
+# chinese-quick-mapping
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+速成查字
 
-## Creating a project
+A static svelteki-kit app to search keystrokes of chinese keyboard input methods 速成 (Quick) and 倉頡 (Cangjie IME).
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Demo
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
+https://chauchakching.github.io/chinese-quick-mapping/
 
-# create a new project in my-app
-npm init svelte@next my-app
-```
-
-> Note: the `@next` is temporary
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Getting Started
 
 ```bash
-npm run dev
+# install dependencies
+yarn
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+# start dev server
+yarn dev
 ```
 
-## Building
+A dev server will be started on `localhost:3000`
 
-To create a production version of your app:
+## Running Cypress tests
 
-```bash
-npm run build
+After dev server started, run `yarn cypress run` to run tests in terminal, or `yarn cypress open` to open the test runner
+
+## Build
+
+```sh
+yarn build
 ```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
