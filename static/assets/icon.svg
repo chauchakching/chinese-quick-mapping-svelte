@@ -1,0 +1,12 @@
+<svg width="512" height="512" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+      <linearGradient id="Gradient2" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#fbffd6"/>
+        <stop offset="100%" stop-color="#86ffe5"/>
+      </linearGradient>
+  </defs>
+  <g>
+    <rect x="0" y="0" width="512" height="512" fill="url(#Gradient2)"/>
+    <text x="50%" y="57%" dominant-baseline="middle" text-anchor="middle" font-family="system-ui" font-size="350">速</text>
+  </g>
+</svg>

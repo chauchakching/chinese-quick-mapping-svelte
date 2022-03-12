@@ -19,32 +19,18 @@
 </svelte:head>
 
 <div class="content">
-  <h1>About this app</h1>
+  <h2 class="text-center text-2xl mb-4">咩黎？</h2>
 
-  <p>
-    This is a <a href="https://kit.svelte.dev">SvelteKit</a> app. You can make your own by typing the
-    following into your command line and following the prompts:
-  </p>
-
-  <!-- TODO lose the @next! -->
-  <pre>npm init svelte@next</pre>
-
-  <p>
-    The page you're looking at is purely static HTML, with no client-side interactivity needed.
-    Because of that, we don't need to load any JavaScript. Try viewing the page's source, or opening
-    the devtools network panel and reloading.
-  </p>
-
-  <p>
-    The <a href="/todos">TODOs</a> page illustrates SvelteKit's data loading and form handling. Try using
-    it with JavaScript disabled!
-  </p>
+  <div class="px-8 w-full max-w-lg text-left">
+    <p>查找中文字嘅速成碼或者倉頡碼。點擊有速成碼嘅字，會顯示字碼拆解圖。</p>
+    <br />
+    <p>
+      呢個係Single page
+      app，亦唔需要經backend做字碼轉換，所以真係"超快"。所有資料同運算都只會喺你部手機／電腦上。
+    </p>
+    <br />
+    <p>暫時主要係手機上面用。如果喺電腦用嘅話，要輸入中文字係一個有雞先定蛋先嘅問題。</p>
+    <br />
+    <p>會考慮加入滑鼠寫字功能。</p>
+  </div>
 </div>
-
-<style>
-  .content {
-    width: 100%;
-    max-width: var(--column-width);
-    margin: var(--column-margin-top) auto 0 auto;
-  }
-</style>

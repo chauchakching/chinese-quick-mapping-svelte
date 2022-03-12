@@ -1,45 +1,27 @@
 <script lang="ts">
-  import Header from '$lib/header/Header.svelte';
   import '../app.css';
 </script>
 
-<Header />
+<div class="flex flex-col h-screen">
+  <header>
+    <h1 class="text-5xl text-gray-900 text-center pt-12 pb-8 sm:pt-24 sm:pb-16">速成查字</h1>
+  </header>
 
-<main>
-  <slot />
-</main>
+  <main
+    class="container mx-auto px-4 flex flex-col justify-between flex-1"
+    style="max-width: 60rem;"
+  >
+    <slot />
+  </main>
 
-<footer>
-  <p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
-</footer>
-
-<style>
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    width: 100%;
-    max-width: 1024px;
-    margin: 0 auto;
-    box-sizing: border-box;
-  }
-
-  footer {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-  }
-
-  footer a {
-    font-weight: bold;
-  }
-
-  @media (min-width: 480px) {
-    footer {
-      padding: 40px 0;
-    }
-  }
-</style>
+  <footer class="p-4 flex flex-row items-center">
+    <div class="flex-1">
+      <a class="text-sm opacity-60 cursor-pointer" sveltekit:prefetch href="/about">
+        關於速成查字
+      </a>
+    </div>
+    <a href="https://github.com/chauchakching/chinese-quick-mapping">
+      <img src="assets/GitHub-Mark-64px.png" alt="github" class="h-8" />
+    </a>
+  </footer>
+</div>
