@@ -2,7 +2,7 @@
   import '../app.css';
 </script>
 
-<div class="flex flex-col h-screen mx-auto" style="max-width: 60rem;">
+<div class="flex flex-col items-center h-screen mx-auto max-w-4xl">
   <header>
     <h1 class="text-5xl text-gray-900 text-center pt-12 pb-8 sm:pt-24 sm:pb-16">
       <a href="/">速成查字</a>
@@ -13,8 +13,8 @@
     <slot />
   </main>
 
-  <footer class="mt-8 p-4 flex flex-row items-center">
-    <div class="flex-1">
+  <footer class="mt-8 p-4 flex flex-row justify-between w-full">
+    <div class="flex-1 w-full">
       <a class="text-sm opacity-60 cursor-pointer" sveltekit:prefetch href="/about">
         關於速成查字
       </a>
