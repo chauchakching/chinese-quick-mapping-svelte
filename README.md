@@ -31,3 +31,9 @@ After dev server started, run `yarn cypress run` to run tests in terminal, or `y
 ```sh
 yarn build
 ```
+
+## Production preview
+
+```sh
+yarn build && yarn preview
+```
