@@ -19,7 +19,7 @@
         關於速成查字
       </a>
     </div>
-    <a href="https://github.com/chauchakching/chinese-quick-mapping">
+    <a href="https://github.com/chauchakching/chinese-quick-mapping-svelte">
       <img src="assets/GitHub-Mark-64px.png" alt="github" class="h-8" />
     </a>
   </footer>
