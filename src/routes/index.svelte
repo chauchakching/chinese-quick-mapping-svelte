@@ -11,12 +11,20 @@
   import { browser } from '$app/env';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
 
-  // text to convert
-  let userInputText =
+  const defaultText =
     '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
+
+  // text to convert
+  let userInputText = defaultText;
 
   // dom
   let textarea;
+
+  // auto select text when init
+  $: if (textarea) {
+    textarea.focus();
+    textarea.select();
+  }
 
   // 速成/倉頡
   let mode: Mode = modes.quick;
@@ -31,8 +39,12 @@
     : [];
   $: console.log('input history', inputHistory);
 
-  // update input history on user input change
-  $: inputHistory = updateInputHistory(userInputText, inputHistory);
+  // update input history on user input change (ignore default text)
+  let inputChanged = false;
+  $: inputChanged = inputChanged || userInputText !== defaultText;
+  $: if (inputChanged) {
+    inputHistory = updateInputHistory(userInputText, inputHistory);
+  }
 
   // save input history to local storage
   $: if (browser) {
@@ -63,22 +75,28 @@
               on:click={(e) => {
                 userInputText = '';
                 textarea.focus();
-              }}>清空</button
+              }}
             >
+              清空
+            </button>
           </div>
         </div>
         <div class="flex flex-row">
           <div class="flex-0 w-20 -mr-4">
             <button
               class="text-center block border border-blue-300 py-1 px-4 text-white shadow bg-blue-500 hover:bg-blue-700 rounded-l"
-              on:click={() => (mode = modes.quick)}>速成</button
+              on:click={() => (mode = modes.quick)}
             >
+              速成
+            </button>
           </div>
           <div class="flex-0 w-20 -mr-3">
             <button
               class="text-center block border border-blue-300 py-1 px-4 text-white shadow text-blue-500 bg-white hover:bg-gray-200 rounded-r"
-              on:click={() => (mode = modes.cangjie)}>倉頡</button
+              on:click={() => (mode = modes.cangjie)}
             >
+              倉頡
+            </button>
           </div>
         </div>
       </div>

@@ -15,7 +15,7 @@
 </script>
 
 <svelte:head>
-  <title>About</title>
+  <title>關於速成查字</title>
 </svelte:head>
 
 <div class="content">
