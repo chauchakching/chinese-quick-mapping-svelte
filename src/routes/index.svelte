@@ -161,7 +161,7 @@
   >
     <CharDecompositionGraph
       char={modalChar}
-      parts={chineseToParts(quickMapping, mode, modalChar).parts}
+      parts={chineseToParts(quickMapping, modes.cangjie, modalChar).parts}
     />
   </Modal>
 </section>
