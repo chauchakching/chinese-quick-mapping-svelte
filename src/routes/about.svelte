@@ -18,7 +18,10 @@
   <title>關於速成查字</title>
 </svelte:head>
 
-<div class="content">
+<div
+  class="content py-12 rounded-md flex flex-col justify-center items-center"
+  style="background: #ffffffad"
+>
   <h2 class="text-center text-2xl mb-4">咩黎？</h2>
 
   <div class="px-8 w-full max-w-lg text-left">
