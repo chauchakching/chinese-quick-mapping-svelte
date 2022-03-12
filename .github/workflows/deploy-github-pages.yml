@@ -21,7 +21,7 @@ jobs:
       - name: End-to-end tests
         uses: cypress-io/github-action@v2
         with:
-          build: false
+          install: false
           start: yarn preview
           wait-on: http://localhost:3000
 
