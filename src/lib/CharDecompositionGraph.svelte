@@ -7,13 +7,13 @@
 
 <figure class="relative mt-12" style="width: 270px; height: 192px;">
   <img
-    src={`static/chars/${char}/part_0.svg`}
+    src={`chars/${char}/part_0.svg`}
     class="w-full h-auto absolute opacity-10"
     alt={`${char}-0`}
   />
   {#each [0, 1, 2, 3, 4] as k}
     <img
-      src={`static/chars/${char}/part_${k + 1}.svg`}
+      src={`chars/${char}/part_${k + 1}.svg`}
       class="w-full h-auto absolute"
       style={getColorFilter(k)}
       alt={`${char}-${k}`}
