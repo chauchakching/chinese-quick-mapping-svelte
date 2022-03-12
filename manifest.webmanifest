@@ -1,0 +1,29 @@
+{
+  "short_name": "速成查字",
+  "name": "速成查字",
+  "description": "查詢速成倉頡碼",
+  "icons": [
+    {
+      "src": "assets/icon-200.png",
+      "type": "image/png",
+      "sizes": "200x200"
+    },
+    {
+      "src": "assets/icon-200-color.png",
+      "type": "image/png",
+      "sizes": "200x200",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#86ffe5",
+  "shortcuts": []
+}
