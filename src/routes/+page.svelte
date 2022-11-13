@@ -8,7 +8,7 @@
   import { chineseToParts, updateInputHistory } from '$lib/utils';
   import quickMapping from '$lib/ChineseQuickMappingSmall.json';
   import Modal from '$lib/Modal.svelte';
-  import { browser } from '$app/env';
+  import { browser } from '$app/environment';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
 
   const defaultText =
@@ -18,7 +18,7 @@
   let userInputText = defaultText;
 
   // dom
-  let textarea;
+  let textarea: any;
 
   // auto select text when init
   $: if (textarea) {
