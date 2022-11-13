@@ -15,9 +15,9 @@
 
   <footer class="mt-8 p-4 flex flex-row justify-between w-full">
     <div class="flex-1 w-full">
-      <a class="text-sm opacity-60 cursor-pointer" sveltekit:prefetch href="/about">
+      <!-- <a class="text-sm opacity-60 cursor-pointer" sveltekit:prefetch href="/about">
         關於速成查字
-      </a>
+      </a> -->
     </div>
     <a href="https://github.com/chauchakching/chinese-quick-mapping-svelte">
       <img src="assets/GitHub-Mark-64px.png" alt="github" class="h-8" />
