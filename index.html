@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="超快查找速成/倉頡字碼 ：）" />
+    <link rel="icon" type="image/png" href="assets/icon-200-color.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="assets/icon-200-color.png" />
+    <meta name="theme-color" content="#fbffd6" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="content-security-policy" content="">
+		<link rel="modulepreload" href="/_app/immutable/start-03baf535.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/index-c9fbacbd.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/singletons-f67a7031.js">
+  </head>
+  <body>
+    <div>
+		<script type="module" data-sveltekit-hydrate="45h">
+			import { start } from "/_app/immutable/start-03baf535.js";
+
+			start({
+				env: {},
+				hydrate: null,
+				paths: {"base":"","assets":""},
+				target: document.querySelector('[data-sveltekit-hydrate="45h"]').parentNode,
+				trailing_slash: "never"
+			});
+		</script></div>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js').then((reg) => {
+            console.log('Service worker registered.', reg);
+          });
+        });
+      }
+    </script>
+  </body>
+</html>
