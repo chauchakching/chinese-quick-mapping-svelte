@@ -57,14 +57,14 @@ describe('sanity test', () => {
     /**
      * can get keystrokes of 倉頡
      */
-    expectKeystrokeTranslation('腐', '戈月');
+    expectKeystrokeTranslation('腐', '戈人');
     cy.get('button').contains('倉頡').click();
     expectKeystrokeTranslation('山', '山');
     expectKeystrokeTranslation('水', '水');
     expectKeystrokeTranslation('豆', '一口廿');
-    expectKeystrokeTranslation('腐', '戈人戈月');
+    expectKeystrokeTranslation('腐', '戈戈人月人');
     expectKeystrokeTranslation('花', '廿人心');
     cy.get('button').contains('速成').click();
-    expectKeystrokeTranslation('腐', '戈月');
+    expectKeystrokeTranslation('腐', '戈人');
   });
 });
