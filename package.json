@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^1.0.0-next.87",
+    "@sveltejs/adapter-static": "^1.0.0-next.48",
     "@sveltejs/kit": "^1.0.0-next.544",
     "@types/cookie": "^0.4.1",
     "@types/ramda": "^0.28.20",
