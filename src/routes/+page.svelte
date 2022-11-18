@@ -137,7 +137,7 @@
 
     <div class="flex flex-row flex-wrap items-stretch" data-testid="history-entries">
       <div class="flex-1 mt-2">
-        {#each inputHistory as str}
+        {#each inputHistory as str (str)}
           <button
             class="bg-white hover:bg-gray-200 border mr-1 mt-2 px-2 rounded-full truncate"
             data-testid="history-entry-button"
