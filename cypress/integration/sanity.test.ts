@@ -46,12 +46,20 @@ describe('sanity test', () => {
     cy.getByTestId('history-entry-button').should('have.length', 1);
     cy.get('#user-input').type('港');
     cy.getByTestId('history-entry-button').should('have.length', 1);
+    cy.getByTestId('history-entry-button').eq(0).should('contain', '香港');
     cy.get('#user-input').type('{backspace}{backspace}');
     cy.getByTestId('history-entry-button').should('have.length', 1);
+
     cy.get('#user-input').type('山竹牛肉');
     cy.getByTestId('history-entry-button').should('have.length', 2);
+    cy.getByTestId('history-entry-button').eq(0).should('contain', '山竹牛肉');
+    cy.getByTestId('history-entry-button').eq(1).should('contain', '香港');
+
     cy.get('#user-input').type('{backspace}{backspace}{backspace}水豆腐花');
     cy.getByTestId('history-entry-button').should('have.length', 3);
+    cy.getByTestId('history-entry-button').eq(0).should('contain', '山水豆腐花');
+    cy.getByTestId('history-entry-button').eq(1).should('contain', '山竹牛肉');
+    cy.getByTestId('history-entry-button').eq(2).should('contain', '香港');
     cy.getByTestId('char-box').should('have.length', 5);
 
     /**
