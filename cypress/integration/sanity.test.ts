@@ -21,6 +21,11 @@ describe('sanity test', () => {
     expectKeystrokeTranslation('香', '竹日');
     expectKeystrokeTranslation('港', '水山');
 
+    // update query param
+    cy.location().should((loc) => {
+      expect(loc.search).to.eq(`?q=${encodeURIComponent('香港')}`)
+    })
+
     /**
      * can click "clear text field"
      */
@@ -75,4 +80,13 @@ describe('sanity test', () => {
     cy.get('button').contains('速成').click();
     expectKeystrokeTranslation('腐', '戈人');
   });
+
+  it('support query param', () => {
+    cy.visit('http://localhost:3000/?q=abc');
+    cy.get('#user-input').should('have.value', 'abc');
+
+    // when empty, should user default text
+    cy.visit('http://localhost:3000/?q=');
+    cy.get('#user-input').should('not.have.value', '');
+  })
 });

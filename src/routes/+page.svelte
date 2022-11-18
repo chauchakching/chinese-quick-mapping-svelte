@@ -3,19 +3,33 @@
 </script>
 
 <script lang="ts">
+  import { browser } from '$app/environment';
+  import { page } from '$app/stores';
+
   import CharBoxWrapper from '$lib/CharBoxWrapper.svelte';
   import { modes, type Mode } from '$lib/types';
   import { chineseToParts, updateInputHistory } from '$lib/utils';
   import quickMapping from '$lib/ChineseQuickMappingSmall.json';
   import Modal from '$lib/Modal.svelte';
-  import { browser } from '$app/environment';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
 
   const defaultText =
     '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
 
-  // text to convert
-  let userInputText = defaultText;
+  const setQueryParam = (key: string, value: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(key, value);
+    window.history.pushState(null, '', url.toString());
+  };
+
+  // Text to convert
+  // On mount, use query param "q" to set text
+  let userInputText = $page.url.searchParams.get('q') || defaultText;
+
+  // on text change, update query param "q"
+  $: if (userInputText !== defaultText && typeof window !== 'undefined') {
+    setQueryParam('q', userInputText);
+  }
 
   // dom
   let textarea: any;
@@ -43,6 +57,7 @@
   $: inputChanged = inputChanged || userInputText !== defaultText;
   $: if (inputChanged) {
     inputHistory = updateInputHistory(userInputText, inputHistory);
+    console.log('inputHistory', inputHistory);
   }
 
   // save input history to local storage
