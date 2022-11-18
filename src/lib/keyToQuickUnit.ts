@@ -1,4 +1,4 @@
-export const keyToQuickUnit = {
+export const keyToQuickUnit: Record<string, string | undefined> = {
   q: '手',
   w: '田',
   e: '水',

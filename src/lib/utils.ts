@@ -13,7 +13,7 @@ const quickUnitsToParts = (quickUnits: string) => {
   return `${quickUnits[0]}${quickUnits[quickUnits.length - 1]}`;
 };
 
-const alphabetToQuickUnit = (char) => keyToQuickUnit[char];
+const alphabetToQuickUnit = (char: string) => keyToQuickUnit[char];
 
 export const updateInputHistory = (newContent: string, inputHistory: string[]) => {
   if (newContent.length === 0) return inputHistory;
@@ -29,8 +29,8 @@ export const updateInputHistory = (newContent: string, inputHistory: string[]) =
     shouldAppendHistory && shouldUpdateLastHistory
       ? [newContent, ...inputHistory.slice(1)]
       : shouldAppendHistory
-      ? [newContent, ...inputHistory]
-      : inputHistory
+        ? [newContent, ...inputHistory]
+        : inputHistory
   ).slice(0, 10);
 };
 
