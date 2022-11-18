@@ -4,9 +4,7 @@
 
 <div class="flex flex-col items-center h-screen mx-auto max-w-4xl">
   <header>
-    <h1 class="text-5xl text-gray-900 text-center pt-12 pb-8 sm:pt-24 sm:pb-16">
-      <a href="/">速成查字</a>
-    </h1>
+    <h1 class="text-5xl text-gray-900 text-center pt-12 pb-8 sm:pt-24 sm:pb-16">速成查字</h1>
   </header>
 
   <main class="container px-4 flex flex-col justify-between flex-1">
