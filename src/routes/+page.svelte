@@ -98,17 +98,16 @@
     <div>
       <div class="flex flex-row justify-between mb-4">
         <div class="flex flex-row">
-          <div class="flex-0 w-20 -mr-4">
-            <button
-              class={`text-center block border rounded py-1 px-4 hover:bg-gray-200 shadow rounded bg-white`}
-              on:click={(e) => {
-                userInputText = '';
-                textarea.focus();
-              }}
-            >
-              清空
-            </button>
-          </div>
+          <button
+            class={`flex items-center text-center block border rounded py-1 px-4 hover:bg-gray-200 shadow rounded bg-white`}
+            on:click={(e) => {
+              userInputText = '';
+              textarea.focus();
+            }}
+          >
+            <img src="/icons/trash.svg" alt="清空" class="h-4 w-4 mr-2" />
+            <span>清空</span>
+          </button>
         </div>
         <div class="flex flex-row">
           {#if typeof navigator !== 'undefined' && !!navigator?.clipboard?.writeText}
