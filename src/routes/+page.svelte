@@ -12,9 +12,12 @@
   import quickMapping from '$lib/ChineseQuickMappingSmall.json';
   import Modal from '$lib/Modal.svelte';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
+  import Message from '$lib/Message.svelte';
 
   const defaultText =
     '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
+
+  let copyResultMessage: any;
 
   const setQueryParam = (key: string, value: string) => {
     const url = new URL(window.location.href);
@@ -78,13 +81,24 @@
 </svelte:head>
 
 <section>
+  <Message bind:ele={copyResultMessage}>
+    <div class="flex justify-center items-center">
+      <img
+        src="/icons/check.svg"
+        alt="複製連結"
+        class="h-4 w-4 mr-2 text-green-500"
+        style="filter: invert(59%) sepia(70%) saturate(487%) hue-rotate(89deg) brightness(90%) contrast(94%)"
+      />
+      <span>已複製連結</span>
+    </div>
+  </Message>
   <div>
     <div>
       <div class="flex flex-row justify-between mb-4">
         <div class="flex flex-row">
           <div class="flex-0 w-20 -mr-4">
             <button
-              class="text-center block border rounded py-1 px-4 text-white text-blue-500 hover:bg-gray-200 shadow rounded bg-white"
+              class={`text-center block border rounded py-1 px-4 hover:bg-gray-200 shadow rounded bg-white`}
               on:click={(e) => {
                 userInputText = '';
                 textarea.focus();
@@ -95,9 +109,20 @@
           </div>
         </div>
         <div class="flex flex-row">
+          {#if typeof navigator !== 'undefined' && !!navigator?.clipboard?.writeText}
+            <button
+              class={`text-center block border rounded mr-2 py-1 px-2 hover:bg-gray-200 shadow rounded bg-white`}
+              on:click={(e) => {
+                navigator.clipboard.writeText(window.location.href);
+                copyResultMessage.open();
+              }}
+            >
+              <img src="/icons/link.svg" alt="複製連結" class="h-4 w-4" />
+            </button>
+          {/if}
           <div class="flex-0 w-20 -mr-4">
             <button
-              class="text-center block border border-blue-300 py-1 px-4 text-white shadow bg-blue-500 hover:bg-blue-700 rounded-l"
+              class="text-center block border border-slate-300 py-1 px-4 text-white shadow bg-slate-500 hover:bg-slate-700 rounded-l"
               on:click={() => (mode = modes.quick)}
             >
               速成
@@ -105,7 +130,7 @@
           </div>
           <div class="flex-0 w-20 -mr-3">
             <button
-              class="text-center block border border-blue-300 py-1 px-4 text-white shadow text-blue-500 bg-white hover:bg-gray-200 rounded-r"
+              class={`text-center block border border-slate-300 py-1 px-4 shadow bg-white hover:bg-gray-200 rounded-r`}
               on:click={() => (mode = modes.cangjie)}
             >
               倉頡
