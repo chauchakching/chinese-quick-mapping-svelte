@@ -99,7 +99,7 @@
       <div class="flex flex-row justify-between mb-4">
         <div class="flex flex-row">
           <button
-            class={`flex items-center text-center block border rounded py-1 px-4 hover:bg-gray-200 shadow rounded bg-white`}
+            class={`flex items-center text-center block border rounded py-1 px-3 hover:bg-gray-200 shadow rounded bg-white`}
             on:click={(e) => {
               userInputText = '';
               textarea.focus();
