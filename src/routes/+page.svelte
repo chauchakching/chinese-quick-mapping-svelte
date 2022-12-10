@@ -6,13 +6,15 @@
   import { browser } from '$app/environment';
   import { page } from '$app/stores';
 
-  import CharBoxWrapper from '$lib/CharBoxWrapper.svelte';
   import { modes, type Mode } from '$lib/types';
   import { chineseToParts, updateInputHistory } from '$lib/utils';
   import quickMapping from '$lib/ChineseQuickMappingSmall.json';
   import Modal from '$lib/Modal.svelte';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
   import Message from '$lib/Message.svelte';
+  import charsWithImages from '$lib/chars-with-images.json';
+
+  const charsWithImagesSet = new Set(charsWithImages);
 
   const defaultText =
     '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
@@ -48,7 +50,7 @@
 
   $: charBoxItems = userInputText.split('').map((char) => {
     const { ch, parts } = chineseToParts(quickMapping, mode, char);
-    return { ch, parts, hasParts: parts.length > 0 };
+    return { ch, parts };
   });
 
   let inputHistory: string[] = browser
@@ -155,20 +157,21 @@
           class="flex-1 px-2 pt-3 pb-1 border-l border-r border-b sm:border-0 rounded-b sm:rounded-t sm:ml-4 flex content-start flex-wrap bg-white shadow-md relative"
           data-testid="char-box-container"
         >
-          {#each charBoxItems as { ch, parts, hasParts }}
-            <CharBoxWrapper {hasParts}>
-              <button
-                class={`flex flex-col items-center mx-1 mb-2 px-2.5 py-1.5 ${
-                  hasParts ? 'hover:bg-gray-100 border rounded-lg shadow-sm' : ''
-                }`}
-                data-testid="char-box"
-                data-box-char={ch}
-                on:click={() => hasParts && openCharModal(ch)}
-              >
-                <div class="flex flex-row text-2xl leading-8">{ch}</div>
-                <div class="flex flex-row text-xs text-gray-500">{parts}</div>
-              </button>
-            </CharBoxWrapper>
+          {#each charBoxItems as { ch, parts }}
+            {@const clickable = charsWithImagesSet.has(ch)}
+            <button
+              class={`flex flex-col items-center mx-1 mb-2 px-2.5 py-1.5 ${
+                clickable
+                  ? 'hover:bg-gray-100 border rounded-lg shadow-sm cursor-pointer'
+                  : 'cursor-default'
+              }`}
+              data-testid="char-box"
+              data-box-char={ch}
+              on:click={() => clickable && openCharModal(ch)}
+            >
+              <div class="flex flex-row text-2xl leading-8">{ch}</div>
+              <div class="flex flex-row text-xs text-gray-500">{parts}</div>
+            </button>
           {/each}
         </div>
       </div>
