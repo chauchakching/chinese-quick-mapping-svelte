@@ -87,7 +87,7 @@
     <div class="flex justify-center items-center">
       <img
         src="/icons/check.svg"
-        alt="複製連結"
+        alt="success icon"
         class="h-4 w-4 mr-2 text-green-500"
         style="filter: invert(59%) sepia(70%) saturate(487%) hue-rotate(89deg) brightness(90%) contrast(94%)"
       />
