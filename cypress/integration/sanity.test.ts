@@ -79,6 +79,15 @@ describe('sanity test', () => {
     expectKeystrokeTranslation('花', '廿人心');
     cy.get('button').contains('速成').click();
     expectKeystrokeTranslation('腐', '戈人');
+
+    /**
+     * can copy link
+     */
+    cy.get('[alt="複製連結"]').click()
+    cy.get('[alt="success icon"]')
+    cy.window().its('navigator.clipboard')
+      .then((clip) => clip.readText())
+      .should('equal', 'http://localhost:3000/?q=%E5%B1%B1%E6%B0%B4%E8%B1%86%E8%85%90%E8%8A%B1')
   });
 
   it('support query param', () => {
