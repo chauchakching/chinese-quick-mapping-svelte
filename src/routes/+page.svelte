@@ -57,7 +57,6 @@
   $: inputChanged = inputChanged || userInputText !== defaultText;
   $: if (inputChanged) {
     inputHistory = updateInputHistory(userInputText, inputHistory);
-    console.log('inputHistory', inputHistory);
   }
 
   // save input history to local storage
