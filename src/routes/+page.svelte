@@ -123,7 +123,9 @@
           {/if}
           <div class="flex-0 w-20 -mr-4">
             <button
-              class="text-center block border border-slate-300 py-1 px-4 text-white shadow bg-slate-500 hover:bg-slate-700 rounded-l"
+              class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-l ${
+                mode === modes.quick ? 'text-white bg-slate-500 hover:bg-slate-700' : 'bg-white hover:bg-gray-200'
+              }`}
               on:click={() => (mode = modes.quick)}
             >
               速成
@@ -131,7 +133,9 @@
           </div>
           <div class="flex-0 w-20 -mr-3">
             <button
-              class={`text-center block border border-slate-300 py-1 px-4 shadow bg-white hover:bg-gray-200 rounded-r`}
+              class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-r ${
+                mode === modes.cangjie ? 'text-white bg-slate-500 hover:bg-slate-700' : 'bg-white hover:bg-gray-200'
+              }`}
               on:click={() => (mode = modes.cangjie)}
             >
               倉頡
