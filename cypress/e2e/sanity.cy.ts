@@ -7,6 +7,23 @@ describe('sanity test', () => {
   it('should work', () => {
     cy.visit('http://localhost:3000');
 
+    /**
+     * Allow access to chrome clipboard
+     */
+    Cypress.automation('remote:debugger:protocol', {
+      command: 'Browser.grantPermissions',
+      params: {
+        permissions: ['clipboardReadWrite', 'clipboardSanitizedWrite'],
+        origin: window.location.origin,
+      },
+    })
+
+    /**
+     * Fix weird error on github action
+     * https://github.com/cypress-io/cypress/issues/18198
+     */
+    cy.window().focus();
+
     cy.get('h1').should('contain', '速成查字');
 
     expectKeystrokeTranslation('速', '卜中');
