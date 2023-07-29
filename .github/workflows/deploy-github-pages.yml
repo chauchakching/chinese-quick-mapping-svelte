@@ -12,18 +12,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install
         run: |
           yarn install
 
       - name: End-to-end tests
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v5
         with:
           build: yarn build
-          start: yarn preview
+          start: yarn preview --port 3000
           wait-on: http://localhost:3000
+          browser: chrome
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.7
