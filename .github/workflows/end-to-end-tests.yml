@@ -15,5 +15,4 @@ jobs:
         with:
           build: yarn build
           start: yarn preview --port 3000
-          wait-on: 'http://127.0.0.1:3000'
           browser: chrome
