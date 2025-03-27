@@ -19,7 +19,7 @@
     open: Function;
   };
 
-  interface Props {
+  export interface Props {
     ele: HTMLElement;
     children?: import('svelte').Snippet;
   }

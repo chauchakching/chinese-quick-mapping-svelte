@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getColor, getColorFilter } from './utils';
 
-  interface Props {
+  export interface Props {
     char: string;
     parts: string;
   }

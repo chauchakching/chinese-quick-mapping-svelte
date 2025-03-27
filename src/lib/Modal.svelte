@@ -1,5 +1,5 @@
 <script lang="ts">
-  interface Props {
+  export interface Props {
     visible: boolean;
     onClose: () => void;
     children?: import('svelte').Snippet;
