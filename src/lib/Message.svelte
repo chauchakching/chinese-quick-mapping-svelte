@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
 
@@ -17,27 +19,34 @@
     open: Function;
   };
 
-  export let ele: HTMLElement;
-
-  let visibleTimer: ReturnType<typeof setTimeout> | null = null;
-  let y = getY();
-
-  $: if (ele) {
-    (ele as Message).open = () => {
-      // previou timer still here, reset
-      if (visibleTimer) {
-        y = getY();
-        clearTimeout(visibleTimer);
-      }
-
-      y.set(ele.offsetHeight + MESSAGE_TOP_OFFSET);
-      visibleTimer = setTimeout(() => {
-        y.set(0);
-        visibleTimer = null;
-      }, MESSAGE_DURATION_MILLISECOND);
-    };
-    console.log('ele with open()', ele);
+  interface Props {
+    ele: HTMLElement;
+    children?: import('svelte').Snippet;
   }
+
+  let { ele = $bindable(), children }: Props = $props();
+
+  let visibleTimer: ReturnType<typeof setTimeout> | null = $state(null);
+  let y = $state(getY());
+
+  run(() => {
+    if (ele) {
+      (ele as Message).open = () => {
+        // previou timer still here, reset
+        if (visibleTimer) {
+          y = getY();
+          clearTimeout(visibleTimer);
+        }
+
+        y.set(ele.offsetHeight + MESSAGE_TOP_OFFSET);
+        visibleTimer = setTimeout(() => {
+          y.set(0);
+          visibleTimer = null;
+        }, MESSAGE_DURATION_MILLISECOND);
+      };
+      console.log('ele with open()', ele);
+    }
+  });
 </script>
 
 <div
@@ -45,5 +54,5 @@
   class="fixed left-1/2 bg-white py-2 px-4 border border-solid border-slate-100 rounded-3xl drop-shadow"
   style={`transform: translate(-50%, -100%); top: ${$y}px`}
 >
-  <slot />
+  {@render children?.()}
 </div>

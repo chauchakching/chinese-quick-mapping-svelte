@@ -1,8 +1,6 @@
-<script context="module" lang="ts">
-  export const prerender = true;
-</script>
-
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { browser } from '$app/environment';
   import { page } from '$app/stores';
 
@@ -19,7 +17,7 @@
   const defaultText =
     '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
 
-  let copyResultMessage: any;
+  let copyResultMessage: any = $state();
 
   const setQueryParam = (key: string, value: string) => {
     const url = new URL(window.location.href);
@@ -28,49 +26,66 @@
   };
 
   // Text to convert
-  // On mount, use query param "q" to set text
-  let userInputText = $page.url.searchParams.get('q') || defaultText;
-
-  // on text change, update query param "q"
-  $: if (userInputText !== defaultText && typeof window !== 'undefined') {
-    setQueryParam('q', userInputText);
-  }
-
-  // dom
-  let textarea: any;
-
-  // auto select text when init
-  $: if (textarea) {
-    textarea.focus();
-    textarea.select();
-  }
-
-  // 速成/倉頡
-  let mode: Mode = modes.quick;
-
-  $: charBoxItems = userInputText.split('').map((char) => {
-    const { ch, parts } = chineseToParts(quickMapping, mode, char);
-    return { ch, parts };
+  // Initialize with defaultText, will update with query param in browser
+  let userInputText = $state(defaultText);
+  
+  // On client-side, check for query param
+  run(() => {
+    if (browser) {
+      const queryParam = $page.url.searchParams.get('q');
+      if (queryParam) {
+        userInputText = queryParam;
+      }
+    }
   });
 
-  let inputHistory: string[] = browser
+  // on text change, update query param "q"
+  run(() => {
+    if (userInputText !== defaultText && typeof window !== 'undefined') {
+      setQueryParam('q', userInputText);
+    }
+  });
+
+  // dom
+  let textarea: any = $state();
+
+  // auto select text when init
+  run(() => {
+    if (textarea) {
+      textarea.focus();
+      textarea.select();
+    }
+  });
+
+  // 速成/倉頡
+  let mode: Mode = $state(modes.quick);
+
+  let charBoxItems = $derived(userInputText.split('').map((char) => {
+    const { ch, parts } = chineseToParts(quickMapping, mode, char);
+    return { ch, parts };
+  }));
+
+  let inputHistory: string[] = $state(browser
     ? JSON.parse(localStorage.getItem('inputHistory') || '[]')
-    : [];
+    : []);
 
   // update input history on user input change (ignore default text)
-  let inputChanged = false;
-  $: inputChanged = inputChanged || userInputText !== defaultText;
-  $: if (inputChanged) {
-    inputHistory = updateInputHistory(userInputText, inputHistory);
-  }
+  let inputChanged = $derived(userInputText !== defaultText);
+  run(() => {
+    if (inputChanged) {
+      inputHistory = updateInputHistory(userInputText, inputHistory);
+    }
+  });
 
   // save input history to local storage
-  $: if (browser) {
-    localStorage.setItem('inputHistory', JSON.stringify(inputHistory));
-  }
+  run(() => {
+    if (browser) {
+      localStorage.setItem('inputHistory', JSON.stringify(inputHistory));
+    }
+  });
 
-  let modalVisible = false;
-  let modalChar = '速';
+  let modalVisible = $state(false);
+  let modalChar = $state('速');
 
   const openCharModal = (ch: string) => {
     modalChar = ch;
@@ -100,7 +115,7 @@
         <div class="flex flex-row">
           <button
             class={`flex items-center text-center block border rounded py-1 px-3 hover:bg-gray-200 shadow rounded bg-white`}
-            on:click={(e) => {
+            onclick={(e) => {
               userInputText = '';
               textarea.focus();
             }}
@@ -113,7 +128,7 @@
           {#if typeof navigator !== 'undefined' && !!navigator?.clipboard?.writeText}
             <button
               class={`text-center block border rounded mr-2 py-1 px-2 hover:bg-gray-200 shadow rounded bg-white`}
-              on:click={(e) => {
+              onclick={(e) => {
                 navigator.clipboard.writeText(window.location.href);
                 copyResultMessage.open();
               }}
@@ -126,7 +141,7 @@
               class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-l ${
                 mode === modes.quick ? 'text-white bg-slate-500 hover:bg-slate-700' : 'bg-white hover:bg-gray-200'
               }`}
-              on:click={() => (mode = modes.quick)}
+              onclick={() => (mode = modes.quick)}
             >
               速成
             </button>
@@ -136,7 +151,7 @@
               class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-r ${
                 mode === modes.cangjie ? 'text-white bg-slate-500 hover:bg-slate-700' : 'bg-white hover:bg-gray-200'
               }`}
-              on:click={() => (mode = modes.cangjie)}
+              onclick={() => (mode = modes.cangjie)}
             >
               倉頡
             </button>
@@ -154,7 +169,7 @@
             class="w-full outline-none resize-none"
             bind:value={userInputText}
             bind:this={textarea}
-          />
+></textarea>
         </div>
         <div
           class="flex-1 px-2 pt-3 pb-1 border-l border-r border-b sm:border-0 rounded-b sm:rounded-t sm:ml-4 flex content-start flex-wrap bg-white shadow-md relative"
@@ -170,7 +185,7 @@
               }`}
               data-testid="char-box"
               data-box-char={ch}
-              on:click={() => clickable && openCharModal(ch)}
+              onclick={() => clickable && openCharModal(ch)}
             >
               <div class="flex flex-row text-2xl leading-8">{ch}</div>
               <div class="flex flex-row text-xs text-gray-500">{parts}</div>
@@ -187,7 +202,7 @@
             class="bg-white hover:bg-gray-200 border mr-1 mt-2 px-2 rounded-full truncate"
             data-testid="history-entry-button"
             style="max-width: 180px;"
-            on:click={() => {
+            onclick={() => {
               userInputText = str;
             }}
           >
@@ -195,7 +210,7 @@
           </button>
         {/each}
       </div>
-      <div class="sm:flex-1" />
+      <div class="sm:flex-1"></div>
     </div>
   </div>
   <Modal

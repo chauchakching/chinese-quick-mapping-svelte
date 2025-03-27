@@ -1,8 +1,12 @@
 <script lang="ts">
   import { getColor, getColorFilter } from './utils';
 
-  export let char: string;
-  export let parts: string;
+  interface Props {
+    char: string;
+    parts: string;
+  }
+
+  let { char, parts }: Props = $props();
 </script>
 
 <figure class="relative mt-12" style="width: 270px; height: 192px;">

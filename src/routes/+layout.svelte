@@ -1,5 +1,10 @@
 <script lang="ts">
   import '../app.css';
+  interface Props {
+    children?: import('svelte').Snippet;
+  }
+
+  let { children }: Props = $props();
 </script>
 
 <div class="flex flex-col items-center h-screen mx-auto max-w-4xl">
@@ -8,7 +13,7 @@
   </header>
 
   <main class="container px-4 flex flex-col justify-between flex-1">
-    <slot />
+    {@render children?.()}
   </main>
 
   <footer class="mt-8 p-4 flex flex-row justify-between w-full">

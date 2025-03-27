@@ -1,6 +1,17 @@
 <script lang="ts">
-  export let visible: boolean;
-  export let onClose: () => void;
+  interface Props {
+    visible: boolean;
+    onClose: () => void;
+    children?: import('svelte').Snippet;
+  }
+
+  let { visible, onClose, children }: Props = $props();
+
+  function handleKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      onClose();
+    }
+  }
 </script>
 
 <div
@@ -9,11 +20,17 @@
   }`}
   data-testid="modal"
   style="background-color: rgba(0, 0, 0, 0.4); transition: opacity 0.15s ease 0s;"
-  on:click={() => onClose()}
+  onclick={() => onClose()}
+  onkeydown={handleKeyDown}
+  role="dialog"
+  aria-modal={visible}
+  tabindex="-1"
 >
   <button
     class={`${visible ? '' : 'hidden '}bg-white rounded flex flex-col items-center justify-center`}
   >
-    <slot />
+    {#if children}
+      {@render children()}
+    {/if}
   </button>
 </div>
