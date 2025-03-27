@@ -16,13 +16,13 @@ jobs:
 
       - name: Install
         run: |
-          yarn install
+          npm install
 
       - name: End-to-end tests
         uses: cypress-io/github-action@v5
         with:
-          build: yarn build
-          start: yarn preview --port 3000
+          build: npm run build
+          start: npm run preview --port 3000
           browser: chrome
 
       - name: Deploy to GitHub Pages
