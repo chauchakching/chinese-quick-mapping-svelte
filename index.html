@@ -8,24 +8,36 @@
     <link rel="apple-touch-icon" href="assets/icon-200-color.png" />
     <meta name="theme-color" content="#fbffd6" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="content-security-policy" content="">
-		<link rel="modulepreload" href="/_app/immutable/start-a792e8aa.js">
-		<link rel="modulepreload" href="/_app/immutable/chunks/index-3ac48d16.js">
-		<link rel="modulepreload" href="/_app/immutable/chunks/singletons-7d22791f.js">
+    
+		<link rel="modulepreload" href="/_app/immutable/entry/start.DKpT6tSv.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/BxmoE1yD.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/CQwz6dL6.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/rvikjMvq.js">
+		<link rel="modulepreload" href="/_app/immutable/entry/app.DKyeK8M6.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/GBPxKDLZ.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/C7VPXoa8.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/6lntSeGW.js">
+		<link rel="modulepreload" href="/_app/immutable/chunks/DtHbw4g-.js">
   </head>
   <body>
     <div>
-		<script type="module" data-sveltekit-hydrate="45h">
-			import { start } from "/_app/immutable/start-a792e8aa.js";
+			<script>
+				{
+					__sveltekit_zxbnx3 = {
+						base: ""
+					};
 
-			start({
-				env: {},
-				hydrate: null,
-				paths: {"base":"","assets":""},
-				target: document.querySelector('[data-sveltekit-hydrate="45h"]').parentNode,
-				trailing_slash: "never"
-			});
-		</script></div>
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("/_app/immutable/entry/start.DKpT6tSv.js"),
+						import("/_app/immutable/entry/app.DKyeK8M6.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		</div>
 
     <script>
       if ('serviceWorker' in navigator) {
