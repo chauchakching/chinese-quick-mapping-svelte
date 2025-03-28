@@ -41,8 +41,10 @@
     "vite": "^5.4.4"
   },
   "type": "module",
-  "dependencies": {},
   "engines": {
     "node": ">=18.13"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.37.0"
   }
 }
