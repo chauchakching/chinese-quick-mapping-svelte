@@ -44,6 +44,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 
 - **Traditional-first**: All lookups assume Traditional Chinese characters.
 - **Terminology**: 速成 = Quick; 倉頡 = Cangjie; “character parts” are components used by these methods.
+- **Mobile-first**: ~90% of traffic is from mobile; prioritize responsive UI, touch-friendly interactions, and fast loads on low-end devices.
 - **Performance**: Prefer static asset fetching and caching; avoid heavy runtime computation or importing large asset sets at build time.
 - **Offline**: Keep features functional with cached assets; mind service worker behavior.
 - **Client-only**: No server backend assumed.
