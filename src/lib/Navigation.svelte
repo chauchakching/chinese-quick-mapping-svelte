@@ -2,8 +2,8 @@
   import { page } from '$app/stores';
   
   const navItems = [
-    { href: '/', label: '字典查詢', icon: '/icons/search.svg' },
-    { href: '/typing', label: '打字測試', icon: '/icons/keyboard.svg' }
+    { href: '/', label: '查字', icon: '/icons/search.svg' },
+    { href: '/typing', label: '練打字', icon: '/icons/fire.svg' }
   ];
   
   $: currentPath = $page.url.pathname;
@@ -15,7 +15,7 @@
       {@const isActive = (href === '/' && currentPath === '/') || (href !== '/' && currentPath.startsWith(href))}
       <a
         {href}
-        class={`flex-1 flex flex-col items-center px-4 py-3 text-sm transition-colors duration-200 ${
+        class={`flex-1 flex flex-col items-center w-28 px-4 py-3 text-sm transition-colors duration-200 ${
           isActive 
             ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' 
             : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
