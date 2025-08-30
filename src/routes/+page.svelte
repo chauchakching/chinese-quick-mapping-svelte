@@ -217,6 +217,7 @@
     visible={modalVisible}
     onClose={() => {
       modalVisible = false;
+      modalChar = ''; // Reset character to prevent showing old images
     }}
   >
     <CharDecompositionGraph
