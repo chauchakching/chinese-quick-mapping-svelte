@@ -150,7 +150,7 @@
       <input
         type="text"
         bind:value={userInput}
-        placeholder={isCompleted ? "已完成！" : "開始輸入練習文本..."}
+        placeholder={isCompleted ? "已完成！" : "開始打字..."}
         class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-mono text-center"
         disabled={isCompleted}
         autocomplete="off"
@@ -163,8 +163,6 @@
     <!-- Statistics -->
     <div class="flex justify-center mb-4">
       <div class="flex gap-6 text-sm text-gray-600">
-        <span>進度: <span class="font-medium text-gray-800">{completedChars}/{currentText.length}</span></span>
-        <span>準確度: <span class="font-medium text-gray-800">{Math.round(accuracy)}%</span></span>
         <span>速度: <span class="font-medium text-gray-800">{cpm}</span> 字/分鐘</span>
       </div>
     </div>
