@@ -1,0 +1,11 @@
+---
+description: Ensure the agent reads the project background before each conversation
+globs:
+alwaysApply: true
+---
+
+Read this before starting every new conversation:
+
+- MUST read `prompts/project-background.md` in full at the start of each conversation (or `@prompts/project-background.md` if present).
+- Treat it as the canonical background for scope, terminology (速成/倉頡), constraints, and tech stack.
+- Re-read if the file changes; align implementation and answers to it unless the user explicitly overrides.
