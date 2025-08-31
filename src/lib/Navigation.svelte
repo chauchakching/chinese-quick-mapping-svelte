@@ -27,8 +27,7 @@
             <img 
               src={icon} 
               alt={label}
-              class={`h-4 w-4 ${isActive ? 'opacity-100' : 'opacity-60'}`}
-              style={isActive ? 'filter: invert(37%) sepia(76%) saturate(2451%) hue-rotate(212deg) brightness(97%) contrast(98%)' : ''}
+              class={`h-4 w-4 transition-all duration-200 ${isActive ? 'opacity-100 scale-110' : 'opacity-70 scale-100'}`}
             />
           {/if}
           <span class="font-medium">{label}</span>
