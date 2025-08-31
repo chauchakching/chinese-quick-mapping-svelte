@@ -147,11 +147,6 @@ async function build() {
       )
     ];
   });
-  // Shuffle for variety
-  for (let i = unique.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [unique[i], unique[j]] = [unique[j], unique[i]];
-  }
 
   // Compute per-source counts
   const sourceCounts = Array.from({ length: sources.length }, () => 0);
