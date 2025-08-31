@@ -13,7 +13,7 @@
   } from '$lib/utils';
   
   // Debug mode state
-  let debugMode = $state(true);
+  let debugMode = $state(false);
   const debugSnippet: [string, number] = ["靜靜，了一個", 0];
   const debugSource: SnippetSourceMeta = { 
     id: "debug", 
