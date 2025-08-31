@@ -179,7 +179,7 @@
       <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" data-testid="completion-message">
         <div class="flex items-center">
           <img src="/icons/check.svg" alt="完成" class="h-5 w-5 mr-2" />
-          <span class="font-medium">恭喜完成！</span>
+          <span class="font-medium">完成！</span>
         </div>
         <div class="mt-3 grid grid-cols-3 gap-4 text-sm">
           <div class="text-center">

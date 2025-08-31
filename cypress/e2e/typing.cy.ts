@@ -162,7 +162,7 @@ describe('Typing Practice Page', () => {
           cy.get('body').then(($body) => {
             if ($body.find('[data-testid="completion-message"]').length > 0) {
               cy.get('[data-testid="completion-message"]').should('be.visible');
-              cy.contains('恭喜完成！').should('be.visible');
+              cy.contains('完成！').should('be.visible');
               cy.contains('準確度:').should('be.visible');
               cy.get('[data-testid="typing-input"]').should('be.disabled');
             } else {
@@ -502,7 +502,7 @@ describe('Typing Practice Page', () => {
               if ($body.find('[data-testid="completion-message"]').length > 0) {
                 // Full completion achieved
                 cy.get('[data-testid="completion-message"]').should('be.visible');
-                cy.contains('恭喜完成！').should('be.visible');
+                cy.contains('完成！').should('be.visible');
                 cy.get('[data-testid="typing-input"]').should('be.disabled');
                 cy.get('[data-testid="typing-input"]').should(
                   'have.attr',
