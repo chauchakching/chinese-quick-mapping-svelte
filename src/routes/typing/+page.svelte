@@ -112,7 +112,7 @@
 </svelte:head>
 
 <section class="w-full max-w-4xl mx-auto">
-  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6 max-w-xl mx-auto">
     <!-- Practice Text Display -->
     <div class="mb-6">
       <h3 class="text-lg font-medium text-gray-700 mb-2">練習文本：</h3>
