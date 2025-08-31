@@ -68,5 +68,15 @@
     "license": "PD (verify per page)",
     "notes": "短篇小說",
     "preferVariant": "zh-tw"
+  },
+  {
+    "id": "xu-zhimo-zaibie-kangqiao",
+    "slug": "徐志摩_再別康橋",
+    "title": "再別康橋",
+    "author": "徐志摩",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E5%86%8D%E5%88%A5%E5%BA%B7%E6%A9%8B",
+    "license": "PD (verify per page)",
+    "notes": "新詩，1928",
+    "preferVariant": "zh-tw"
   }
 ]
