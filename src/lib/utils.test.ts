@@ -124,17 +124,7 @@ describe('createInitialTypingState', () => {
 
 describe('resetTypingState', () => {
   it('should reset state to initial values', () => {
-    const dirtyState: TypingTestState = {
-      userInput: 'test',
-      completedChars: 5,
-      startTime: Date.now(),
-      endTime: Date.now(),
-      isCompleted: true,
-      totalErrors: 3,
-      lastErrorChar: 'x'
-    };
-
-    const result = resetTypingState(dirtyState);
+    const result = resetTypingState();
     expect(result).toEqual(createInitialTypingState());
   });
 });

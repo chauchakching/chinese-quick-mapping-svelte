@@ -137,7 +137,7 @@ export function createInitialTypingState(): TypingTestState {
   };
 }
 
-export function resetTypingState(state: TypingTestState): TypingTestState {
+export function resetTypingState(): TypingTestState {
   return createInitialTypingState();
 }
 
@@ -148,23 +148,23 @@ export function resetTypingState(state: TypingTestState): TypingTestState {
  * The logic is designed to work naturally with Chinese Input Method Editors (IME).
  *
  * BACKGROUND - Chinese IME Behavior:
- * - Single-radical characters (1 key) require space/enter to confirm in OS
- * - Immediate character removal interrupts this natural confirmation process
- * - Browser only sees final committed characters, not intermediate IME states
- * - Users expect to see character composition while typing
+ * - IME composition states must not be interrupted by programmatic input changes
+ * - Browser sees intermediate composition states that should not be evaluated
+ * - Users expect natural composition flow without interference
  *
- * SOLUTION - "Next Character Confirmation" Pattern:
- * 1. User types correct character -> keep it visible in input
- * 2. User types next character -> if also correct, remove previous character
- * 3. For last character -> complete immediately (no next char to wait for)
+ * SOLUTION - "Non-Intrusive Progress Tracking":
+ * 1. NEVER modify userInput - preserve IME composition states
+ * 2. Extract only committed Chinese characters for progress evaluation
+ * 3. Track completion based on correct Chinese character sequence match
+ * 4. Allow natural error correction without input manipulation
  *
  * EDGE CASES HANDLED:
- * - Last character: Complete immediately when typed correctly
- * - Wrong characters: Keep in input for natural correction
- * - Error tracking: Count unique mistakes per position
- * - IME composition: Never interrupt character input process
+ * - IME composition: Never alter user input during any composition state
+ * - Progress tracking: Based purely on Chinese character matching
+ * - Error tracking: Count mistakes without disrupting input flow
+ * - Completion: Detected when all target characters are correctly typed
  *
- * This maintains natural Chinese typing flow while providing clear progress feedback.
+ * This preserves natural Chinese typing flow while providing accurate progress feedback.
  */
 export function processTypingInput(state: TypingTestState, targetText: string): TypingTestState {
   const newState = { ...state };
@@ -175,36 +175,38 @@ export function processTypingInput(state: TypingTestState, targetText: string): 
     newState.isCompleted = false;
   }
 
-  const expectedChar = targetText[newState.completedChars];
-  const isLastChar = newState.completedChars === targetText.length - 1;
+  // Extract only Chinese characters from user input for comparison
+  const typedChineseChars = newState.userInput.split('').filter(isChineseChar);
 
-  // Check if first character in input matches expected character
-  if (newState.userInput.length >= 1 && newState.userInput[0] === expectedChar) {
-    if (isLastChar) {
-      // EDGE CASE: Last character - complete immediately since no next char to wait for
-      newState.completedChars += 1;
-      newState.userInput = '';
-      newState.endTime = Date.now();
-      newState.isCompleted = true;
-    } else if (newState.userInput.length >= 2) {
-      // Not the last character - check if next character also matches
-      const nextExpectedChar = targetText[newState.completedChars + 1];
-      if (newState.userInput[1] === nextExpectedChar) {
-        // Next character matches too - NOW we can safely remove completed character
-        newState.completedChars += 1;
-        newState.lastErrorChar = ''; // Reset error tracking for next character
-        newState.userInput = newState.userInput.slice(1); // Remove the completed character
-      }
+  // Count how many characters match from the beginning
+  let correctChars = 0;
+  for (let i = 0; i < Math.min(typedChineseChars.length, targetText.length); i++) {
+    if (typedChineseChars[i] === targetText[i]) {
+      correctChars++;
+    } else {
+      break; // Stop at first mismatch
     }
-    // If only 1 char and not last: wait for next character (IME-friendly)
-  } else if (
-    newState.userInput.length >= 1 &&
-    newState.userInput[0] !== expectedChar &&
-    newState.userInput[0] !== newState.lastErrorChar
-  ) {
-    // First character is wrong - keep in input for natural correction
-    newState.totalErrors += 1;
-    newState.lastErrorChar = newState.userInput[0];
+  }
+
+  // Update completed character count
+  newState.completedChars = correctChars;
+
+  // Track errors when user types more characters than correct matches
+  if (typedChineseChars.length > correctChars) {
+    const wrongChar = typedChineseChars[correctChars];
+    if (wrongChar !== newState.lastErrorChar) {
+      newState.totalErrors += 1;
+      newState.lastErrorChar = wrongChar;
+    }
+  } else {
+    // Reset error tracking when user corrects/deletes wrong characters
+    newState.lastErrorChar = '';
+  }
+
+  // Check for completion
+  if (newState.completedChars === targetText.length) {
+    newState.endTime = Date.now();
+    newState.isCompleted = true;
   }
 
   return newState;

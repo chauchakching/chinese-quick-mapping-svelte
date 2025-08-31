@@ -13,7 +13,7 @@
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
   
   // Debug mode state
-  let debugMode = $state(true);
+  let debugMode = $state(false);
   const debugSnippet: [string, number] = ["靜了一個", 0];
   const debugSource: SnippetSourceMeta = { 
     id: "debug", 
@@ -39,7 +39,7 @@
         snippets = data.snippets;
         initSnippetOrder();
         pickNextSnippet();
-        testState = resetTypingState(testState);
+        testState = resetTypingState();
       }
     } catch (e) {
       console.warn('Failed to load snippets:', e);
@@ -96,15 +96,15 @@
   const nextText = () => {
     if (debugMode) {
       // In debug mode, just reset the test state since there's only one snippet
-      testState = resetTypingState(testState);
+      testState = resetTypingState();
     } else if (snippets.length) {
       pickNextSnippet();
-      testState = resetTypingState(testState);
+      testState = resetTypingState();
     }
   };
   
   const resetTest = () => {
-    testState = resetTypingState(testState);
+    testState = resetTypingState();
   };
   
   // Handle input changes on user interaction
