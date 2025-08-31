@@ -3,4 +3,4 @@ export const modes = {
   cangjie: 'cangjie'
 } as const;
 
-export type Mode = typeof modes[keyof typeof modes];
+export type Mode = (typeof modes)[keyof typeof modes];

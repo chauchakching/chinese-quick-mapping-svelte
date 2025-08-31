@@ -53,12 +53,7 @@ async function run() {
             }
           ],
           transform: R.pipe(
-            R.map(({ rank1, text1, rank2, text2 }) => [
-              // { rank: rank1, text: text1 },
-              // { rank: rank2, text: text2 },
-              text1,
-              text2
-            ]),
+            R.map(({ text1, text2 }) => [text1, text2]),
             R.flatten
           )
         }

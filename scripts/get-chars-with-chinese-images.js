@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import * as R from 'ramda';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';

@@ -1,0 +1,7 @@
+# Ignore static assets and generated files
+static/
+build/
+node_modules/
+.svelte-kit/
+package-lock.json
+*.json

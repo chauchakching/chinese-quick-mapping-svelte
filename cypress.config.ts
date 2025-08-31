@@ -1,12 +1,12 @@
-import { defineConfig } from "cypress";
+import { defineConfig } from 'cypress';
 
 export default defineConfig({
   screenshotOnRunFailure: false,
   video: false,
 
   e2e: {
-    setupNodeEvents(on, config) {
+    setupNodeEvents() {
       // implement node event listeners here
-    },
-  },
+    }
+  }
 });

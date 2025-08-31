@@ -7,7 +7,7 @@
   const MESSAGE_TOP_OFFSET = 25;
   const MESSAGE_DURATION_MILLISECOND = 2000;
 
-  const notypecheck = (x: any) => x;
+
 
   const getY = () =>
     tweened(0, {
@@ -44,7 +44,6 @@
           visibleTimer = null;
         }, MESSAGE_DURATION_MILLISECOND);
       };
-      console.log('ele with open()', ele);
     }
   });
 </script>
