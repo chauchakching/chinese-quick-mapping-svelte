@@ -36,6 +36,59 @@ Use this at the start of every conversation to stay aligned with the project’s
   - `static/texts/snippets.json` (normalized: sources[] with per-source snippetCount, and snippets as `[text, sourceIndex]` tuples; 28–68 chars)
   - `static/texts/metadata.json` (text metadata and attribution)
 
+### Folder structure
+
+```
+/
+├─ cypress/
+│  ├─ e2e/                      # End-to-end tests (sanity, typing flows)
+│  ├─ fixtures/                 # Test fixtures
+│  ├─ support/                  # Cypress support files
+│  └─ tsconfig.json
+├─ prompts/
+│  └─ project-background.md     # This document
+├─ scripts/                     # Data generation and scraping scripts
+│  ├─ build_snippets.mjs
+│  ├─ fetch_texts.mjs
+│  ├─ generate-small-mapping.js
+│  ├─ get-chars-with-chinese-images.js
+│  ├─ scrap-all-cangjie-mappings.js
+│  └─ scrap-frequent-chinese-characters.js
+├─ src/
+│  ├─ app.css
+│  ├─ app.d.ts
+│  ├─ app.html
+│  ├─ lib/
+│  │  ├─ CharDecompositionGraph.svelte
+│  │  ├─ Message.svelte
+│  │  ├─ Modal.svelte
+│  │  ├─ Navigation.svelte
+│  │  ├─ keyToQuickUnit.ts      # Quick unit mapping logic
+│  │  ├─ types.ts               # Shared TypeScript types
+│  │  ├─ utils.ts               # Shared utilities
+│  │  ├─ utils.test.ts          # Unit tests for utils
+│  │  ├─ chars-with-images.json # Metadata used by UI
+│  │  └─ ChineseQuickMappingSmall.json
+│  └─ routes/
+│     ├─ +layout.svelte         # App layout
+│     ├─ +page.svelte           # Main lookup UI
+│     ├─ +page.js               # Page load/data for main
+│     └─ typing/
+│        └─ +page.svelte        # Typing practice UI
+├─ static/
+│  ├─ assets/                   # Mapping and image assets
+│  ├─ icons/
+│  ├─ manifest.webmanifest
+│  ├─ robots.txt
+│  ├─ service-worker.js         # PWA cache logic
+│  └─ texts/                    # Source texts, snippets, metadata
+├─ ranks.json                   # Frequency/metadata
+├─ svelte.config.js
+├─ tailwind.config.cjs
+├─ tsconfig.json
+└─ vite.config.ts
+```
+
 ### Important files/directories
 
 - **UI**: `src/routes/+page.svelte` (main lookup), `src/routes/typing/+page.svelte` (typing practice), `src/routes/+layout.svelte`
@@ -74,3 +127,4 @@ Use this at the start of every conversation to stay aligned with the project’s
 - Prefer minimal, safe edits with clear diffs. Verify against mapping JSONs when in doubt.
 - Consider offline behavior and caching whenever changing asset paths or fetch logic.
 - **Dev server**: During conversations, assume the local SvelteKit dev server is running (usually `http://localhost:3000`). Verify by checking port 3000 if needed.
+- Respect folder structure: place shared helpers in `src/lib/utils.ts` (and tests in `src/lib/utils.test.ts`), shared types in `src/lib/types.ts`, Quick/Cangjie unit logic in `src/lib/keyToQuickUnit.ts`, and page-specific logic under `src/routes/**`. Do not duplicate utilities inside `routes/`.
