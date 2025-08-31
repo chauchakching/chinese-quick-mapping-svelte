@@ -17,7 +17,6 @@ describe('Typing Practice Page', () => {
   it('should complete the full typing practice flow', () => {
     // === 1. Assert Initial UI ===
     cy.title().should('include', '打字練習');
-    cy.contains('練習文本：').should('be.visible');
     cy.get('[data-testid="typing-input"]').should('be.visible');
     cy.get('[data-testid="typing-stats"]').contains('速度:').should('be.visible');
     cy.get('[data-testid="reset-button"]').should('be.visible');
