@@ -92,10 +92,6 @@ function windowByLength(sentences, minLen = MIN_SNIPPET_LEN, maxLen = MAX_SNIPPE
   return out;
 }
 
-function dedupe(arr) {
-  return Array.from(new Set(arr));
-}
-
 async function build() {
   const metaRaw = await fs.readFile(METADATA_PATH, 'utf8');
   const metadata = JSON.parse(metaRaw);

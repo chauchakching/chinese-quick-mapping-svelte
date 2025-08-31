@@ -101,22 +101,6 @@ function extractMainContent(html) {
   return html;
 }
 
-function decodeEntities(str) {
-  const entities = {
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&#39;': "'"
-  };
-  let out = str.replace(/&(amp|lt|gt|quot|#39);/g, (m) => entities[m] || m);
-  // Numeric decimal
-  out = out.replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)));
-  // Numeric hex
-  out = out.replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)));
-  return out;
-}
-
 function htmlToPlain(html) {
   // First, remove problematic elements that contain licensing/metadata
   let s = html
