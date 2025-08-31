@@ -6,7 +6,8 @@ import {
   createInitialTypingState,
   resetTypingState,
   processTypingInput,
-  type TypingTestState
+  type TypingTestState,
+  isChineseChar
 } from './utils';
 
 describe('shuffle', () => {
@@ -302,5 +303,28 @@ describe('processTypingInput', () => {
     expect(result.isCompleted).toBe(true);
     expect(result.userInput).toBe('');
     expect(result.endTime).toBeTruthy();
+  });
+});
+
+describe('isChineseChar', () => {
+  it('should detect BMP CJK unified ideographs', () => {
+    expect(isChineseChar('測')).toBe(true);
+    expect(isChineseChar('試')).toBe(true);
+    expect(isChineseChar('文')).toBe(true);
+    expect(isChineseChar('本')).toBe(true);
+  });
+
+  it('should detect CJK compatibility ideographs', () => {
+    // U+FA0E is a compatibility ideograph (﨎)
+    expect(isChineseChar('\uFA0E')).toBe(true);
+  });
+
+  it('should reject Latin letters, digits, and punctuation', () => {
+    expect(isChineseChar('A')).toBe(false);
+    expect(isChineseChar('z')).toBe(false);
+    expect(isChineseChar('0')).toBe(false);
+    expect(isChineseChar('，')).toBe(false); // full-width comma
+    expect(isChineseChar(',')).toBe(false);
+    expect(isChineseChar(' ')).toBe(false);
   });
 });

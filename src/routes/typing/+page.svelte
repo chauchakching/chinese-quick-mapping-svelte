@@ -7,7 +7,8 @@
     resetTypingState, 
     processTypingInput,
     calculateCPM,
-    calculateAccuracy
+    calculateAccuracy,
+    isChineseChar
   } from '$lib/utils';
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
   
@@ -55,10 +56,30 @@
   let currentSnippet = $derived(snippets.length ? snippets[currentSnippetIndex] : undefined);
   let currentText = $derived(currentSnippet ? getText(currentSnippet) : '');
   let currentMeta = $derived(currentSnippet ? getMeta(currentSnippet) : undefined);
-  let currentChar = $derived(currentText[testState.completedChars] || '');
+  // Chinese-only typing helpers and derived state
+  let chineseIndices = $derived(currentText.split('').map((c, i) => (isChineseChar(c) ? i : -1)).filter((i) => i !== -1));
+  let filteredChineseText = $derived(chineseIndices.map((i) => currentText[i]).join(''));
+  let indexToChineseOrdinal = $derived(chineseIndices.reduce((m, idx, ord) => { m.set(idx, ord); return m; }, new Map<number, number>()));
+  let typedChineseOnly = $derived(testState.userInput.split('').filter(isChineseChar).join(''));
+  let matchedChinesePrefixLen = $derived.by(() => {
+    const typed = typedChineseOnly.split('');
+    let len = 0;
+    for (let i = 0; i < typed.length; i++) {
+      if (typed[i] === filteredChineseText[testState.completedChars + i]) len++;
+      else break;
+    }
+    return len;
+  });
+  let currentChinesePosition = $derived(testState.completedChars + matchedChinesePrefixLen);
+  let currentChineseCharIndex = $derived(chineseIndices[currentChinesePosition] ?? -1);
+  let currentChar = $derived(currentChineseCharIndex >= 0 ? currentText[currentChineseCharIndex] : '');
   let accuracy = $derived(calculateAccuracy(testState.completedChars, testState.totalErrors));
   let cpm = $derived(calculateCPM(testState.completedChars, testState.startTime || 0, testState.endTime || undefined));
   
+  // Debug logging for user input
+  $effect(() => {
+    console.log('Current user input:', testState.userInput);
+  });
 
   
   const nextText = () => {
@@ -74,7 +95,8 @@
   
   // Handle input changes on user interaction
   const onInput = () => {
-    testState = processTypingInput(testState, currentText);
+    // Do not restrict user input; progression is based on filteredChineseText only
+    testState = processTypingInput(testState, filteredChineseText);
   };
 
   // Load snippets on mount (browser only)
@@ -96,21 +118,23 @@
       <h3 class="text-lg font-medium text-gray-700 mb-2">練習文本：</h3>
       <div class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono" data-testid="typing-text-display">
         {#each currentText.split('') as char, i}
-          {@const isCompleted = i < testState.completedChars || (i >= testState.completedChars && i < testState.completedChars + testState.userInput.length && testState.userInput[i - testState.completedChars] === char)}
-          {@const allTypedMatch = testState.userInput.split('').every((inputChar, idx) => inputChar === currentText[testState.completedChars + idx])}
-          {@const currentPosition = allTypedMatch ? testState.completedChars + testState.userInput.length : testState.completedChars}
-          {@const isCurrent = i === currentPosition}
+          {@const isChinese = isChineseChar(char)}
+          {@const ord = isChinese ? indexToChineseOrdinal.get(i) ?? -1 : -1}
+          {@const isCompletedChinese = isChinese && ord < testState.completedChars + matchedChinesePrefixLen}
+          {@const isCurrentChinese = isChinese && ord === currentChinesePosition}
           <span 
             class={`${
-              isCompleted
-                ? 'bg-green-50 text-green-700' 
-                : isCurrent 
-                  ? 'bg-blue-100 text-blue-700 animate-pulse' 
-                  : 'text-gray-400 opacity-60'
+              isChinese
+                ? (isCompletedChinese
+                    ? 'bg-green-50 text-green-700'
+                    : isCurrentChinese
+                      ? 'bg-blue-100 text-blue-700 animate-pulse'
+                      : 'text-gray-400 opacity-60')
+                : ''
             }`}
             data-testid="typing-char"
             data-char-index={i}
-            data-char-state={isCompleted ? 'completed' : isCurrent ? 'current' : 'pending'}
+            data-char-state={isChinese ? (isCompletedChinese ? 'completed' : isCurrentChinese ? 'current' : 'pending') : 'neutral'}
           >{char}</span>
         {/each}
       </div>

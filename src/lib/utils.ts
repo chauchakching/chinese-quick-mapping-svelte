@@ -105,6 +105,14 @@ export function calculateAccuracy(completedChars: number, totalErrors: number): 
 }
 
 /**
+ * Character utilities
+ */
+export function isChineseChar(ch: string): boolean {
+  // BMP ranges commonly used in provided texts: CJK Unified Ideographs + Compatibility Ideographs
+  return /[\u3400-\u9FFF\uF900-\uFAFF]/.test(ch);
+}
+
+/**
  * Typing test state management
  */
 export interface TypingTestState {

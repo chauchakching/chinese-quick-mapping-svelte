@@ -110,11 +110,17 @@ describe('Typing Practice Page', () => {
     // Wait for content to load
     cy.get('[data-testid="typing-char"]').should('have.length.greaterThan', 0);
 
-    // Type an incorrect character
-    cy.get('[data-testid="typing-input"]').type('x');
+    // Get expected first character, then type a wrong Chinese character
+    cy.get('[data-testid="typing-char"]')
+      .first()
+      .invoke('text')
+      .then((firstChar) => {
+        const wrongChinese = firstChar === '阿' ? '乙' : '阿';
+        cy.get('[data-testid="typing-input"]').type(wrongChinese);
 
-    // Input should still contain the incorrect character
-    cy.get('[data-testid="typing-input"]').should('have.value', 'x');
+        // Input should still contain the incorrect character (Chinese-only is allowed)
+        cy.get('[data-testid="typing-input"]').should('have.value', wrongChinese);
+      });
 
     // Position should not advance (first character still highlighted)
     cy.get('[data-testid="typing-char"]').first().should('have.attr', 'data-char-state', 'current');
@@ -298,55 +304,55 @@ describe('Typing Practice Page', () => {
     // Wait for content to load
     cy.get('[data-testid="typing-char"]').should('have.length.greaterThan', 3);
 
-    // Type first few characters
-    cy.get('[data-testid="typing-char"]')
-      .first()
-      .invoke('text')
-      .then((char1) => {
-        cy.get('[data-testid="typing-char"]')
-          .eq(1)
-          .invoke('text')
-          .then((char2) => {
-            cy.get('[data-testid="typing-char"]')
-              .eq(2)
-              .invoke('text')
-              .then((char3) => {
-                // Type progressively and check state
-                cy.get('[data-testid="typing-input"]').type(char1);
-                cy.get('[data-testid="typing-char"]')
-                  .first()
-                  .should('have.attr', 'data-char-state', 'completed');
-                cy.get('[data-testid="typing-char"]')
-                  .eq(1)
-                  .should('have.attr', 'data-char-state', 'current');
+    // Determine first three Chinese character indices (skip neutral punctuation)
+    cy.get('[data-testid="typing-char"]').then(($spans) => {
+      const chineseRegex = /[\u3400-\u9FFF\uF900-\uFAFF]/;
+      const chineseIdxs: number[] = [];
+      for (let i = 0; i < $spans.length; i++) {
+        const t = $spans.eq(i).text();
+        if (chineseRegex.test(t)) chineseIdxs.push(i);
+        if (chineseIdxs.length >= 4) break;
+      }
+      expect(chineseIdxs.length).to.be.greaterThan(2);
 
-                cy.get('[data-testid="typing-input"]').type(char2);
-                cy.get('[data-testid="typing-char"]')
-                  .first()
-                  .should('have.attr', 'data-char-state', 'completed');
-                cy.get('[data-testid="typing-char"]')
-                  .eq(1)
-                  .should('have.attr', 'data-char-state', 'completed');
-                cy.get('[data-testid="typing-char"]')
-                  .eq(2)
-                  .should('have.attr', 'data-char-state', 'current');
+      const [i0, i1, i2] = chineseIdxs;
+      const char1 = $spans.eq(i0).text();
+      const char2 = $spans.eq(i1).text();
+      const char3 = $spans.eq(i2).text();
 
-                cy.get('[data-testid="typing-input"]').type(char3);
-                cy.get('[data-testid="typing-char"]')
-                  .first()
-                  .should('have.attr', 'data-char-state', 'completed');
-                cy.get('[data-testid="typing-char"]')
-                  .eq(1)
-                  .should('have.attr', 'data-char-state', 'completed');
-                cy.get('[data-testid="typing-char"]')
-                  .eq(2)
-                  .should('have.attr', 'data-char-state', 'completed');
-                cy.get('[data-testid="typing-char"]')
-                  .eq(3)
-                  .should('have.attr', 'data-char-state', 'current');
-              });
-          });
-      });
+      // Type progressively and check state respecting Chinese-only progression
+      cy.get('[data-testid="typing-input"]').type(char1);
+      cy.get('[data-testid="typing-char"]')
+        .eq(i0)
+        .should('have.attr', 'data-char-state', 'completed');
+      cy.get('[data-testid="typing-char"]')
+        .eq(i1)
+        .should('have.attr', 'data-char-state', 'current');
+
+      cy.get('[data-testid="typing-input"]').type(char2);
+      cy.get('[data-testid="typing-char"]')
+        .eq(i0)
+        .should('have.attr', 'data-char-state', 'completed');
+      cy.get('[data-testid="typing-char"]')
+        .eq(i1)
+        .should('have.attr', 'data-char-state', 'completed');
+      cy.get('[data-testid="typing-char"]')
+        .eq(i2)
+        .should('have.attr', 'data-char-state', 'current');
+
+      cy.get('[data-testid="typing-input"]').type(char3);
+      cy.get('[data-testid="typing-char"]')
+        .eq(i0)
+        .should('have.attr', 'data-char-state', 'completed');
+      cy.get('[data-testid="typing-char"]')
+        .eq(i1)
+        .should('have.attr', 'data-char-state', 'completed');
+      cy.get('[data-testid="typing-char"]')
+        .eq(i2)
+        .should('have.attr', 'data-char-state', 'completed');
+      // After three correct chars, some next Chinese char should be current
+      cy.get('[data-testid="typing-char"][data-char-state="current"]').should('exist');
+    });
   });
 
   it('should work across multiple typing sessions', () => {
@@ -403,16 +409,23 @@ describe('Typing Practice Page', () => {
     cy.get('[data-testid="typing-input"]').should('have.value', '');
     cy.get('[data-testid="typing-char"]').should('have.length.greaterThan', 0);
 
-    // Test typing after multiple resets
-    cy.get('[data-testid="typing-char"]')
-      .first()
-      .invoke('text')
-      .then((firstChar) => {
-        cy.get('[data-testid="typing-input"]').type(firstChar);
-        cy.get('[data-testid="typing-char"]')
-          .first()
-          .should('have.attr', 'data-char-state', 'completed');
-      });
+    // Test typing after multiple resets (ensure first Chinese char becomes completed)
+    cy.get('[data-testid="typing-char"]').then(($spans) => {
+      const regex = /[\u3400-\u9FFF\uF900-\uFAFF]/;
+      let firstChineseIndex = -1;
+      for (let i = 0; i < $spans.length; i++) {
+        if (regex.test($spans.eq(i).text())) {
+          firstChineseIndex = i;
+          break;
+        }
+      }
+      expect(firstChineseIndex).to.be.greaterThan(-1);
+      const firstChineseChar = $spans.eq(firstChineseIndex).text();
+      cy.get('[data-testid="typing-input"]').type(firstChineseChar);
+      cy.get('[data-testid="typing-char"]')
+        .eq(firstChineseIndex)
+        .should('have.attr', 'data-char-state', 'completed');
+    });
   });
 
   it('should maintain responsive design on different screen sizes', () => {
@@ -430,7 +443,7 @@ describe('Typing Practice Page', () => {
     cy.get('[data-testid="typing-input"]').should('be.visible');
   });
 
-  it('should handle special characters and punctuation correctly', () => {
+  it('should keep punctuation visible but not require typing it (neutral state)', () => {
     // Wait for content to load
     cy.get('[data-testid="typing-char"]').should('have.length.greaterThan', 0);
 
@@ -439,23 +452,26 @@ describe('Typing Practice Page', () => {
       .invoke('text')
       .then((fullText) => {
         // Find a punctuation character if any
-        const punctuationMatch = fullText.match(/[，。！？；：]/);
+        const punctuationMatch = fullText.match(
+          /[，。！？；：、．·—\-()（）“”"'[\]《》〈〉：；，。！？、]/
+        );
         if (punctuationMatch) {
           const punctIndex = fullText.indexOf(punctuationMatch[0]);
 
-          // Type up to and including the punctuation
-          const textUpToPunct = fullText.substring(0, punctIndex + 1);
-          cy.get('[data-testid="typing-input"]').type(textUpToPunct);
+          // Type up to the punctuation but only Chinese characters
+          const textUpToPunct = fullText.substring(0, punctIndex);
+          const chineseOnly = textUpToPunct.match(/[\u3400-\u9FFF\uF900-\uFAFF]/g)?.join('') || '';
+          cy.get('[data-testid="typing-input"]').type(chineseOnly);
 
-          // Check punctuation is handled correctly
+          // Punctuation should be neutral (not completed/current/pending)
           cy.get('[data-testid="typing-char"]')
             .eq(punctIndex)
-            .should('have.attr', 'data-char-state', 'completed');
+            .should('have.attr', 'data-char-state', 'neutral');
         }
       });
   });
 
-  it('should successfully type a complete short snippet from start to finish', () => {
+  it('should successfully type a complete short snippet from start to finish (Chinese only)', () => {
     // Wait for content to load
     cy.get('[data-testid="typing-char"]').should('have.length.greaterThan', 0);
 
@@ -474,8 +490,9 @@ describe('Typing Practice Page', () => {
             // Clear any existing input and start fresh
             cy.get('[data-testid="typing-input"]').clear();
 
-            // Type the complete snippet
-            cy.get('[data-testid="typing-input"]').type(currentText, { delay: 30 });
+            // Type only the Chinese characters of the snippet
+            const chineseOnly = currentText.match(/[\u3400-\u9FFF\uF900-\uFAFF]/g)?.join('') || '';
+            cy.get('[data-testid="typing-input"]').type(chineseOnly, { delay: 30 });
 
             // Wait for completion processing
             cy.wait(1000);
@@ -493,9 +510,14 @@ describe('Typing Practice Page', () => {
                   '已完成！'
                 );
 
-                // Verify all characters are styled as completed
+                // Verify Chinese characters are completed; punctuation is neutral
                 cy.get('[data-testid="typing-char"]').each(($span) => {
-                  cy.wrap($span).should('have.attr', 'data-char-state', 'completed');
+                  cy.wrap($span)
+                    .invoke('attr', 'data-char-state')
+                    .then((state) => {
+                      if (state === 'neutral') return;
+                      expect(state).to.be.oneOf(['completed']);
+                    });
                 });
 
                 // Verify completion statistics are shown
@@ -505,10 +527,17 @@ describe('Typing Practice Page', () => {
                   .should('contain.text', '字/分鐘');
                 cy.contains('錯誤:').should('contain.text', '次');
               } else {
-                // Verify characters are completed even if UI completion didn't trigger
-                cy.log('Checking character completion without UI completion message');
+                // Verify Chinese characters are completed even if UI completion didn't trigger
+                cy.log(
+                  'Checking character completion (Chinese-only) without UI completion message'
+                );
                 cy.get('[data-testid="typing-char"]').each(($span) => {
-                  cy.wrap($span).should('have.attr', 'data-char-state', 'completed');
+                  cy.wrap($span)
+                    .invoke('attr', 'data-char-state')
+                    .then((state) => {
+                      if (state === 'neutral') return;
+                      expect(state).to.be.oneOf(['completed']);
+                    });
                 });
               }
             });
