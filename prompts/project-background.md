@@ -18,7 +18,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 
 - **Frontend**: SvelteKit + Vite, TypeScript, Tailwind CSS.
 - **PWA**: `static/service-worker.js` for caching assets and offline functionality.
-- **Testing**: Cypress e2e (`cypress/e2e/sanity.cy.ts`).
+- **Testing**: Cypress e2e (`cypress/e2e/sanity.cy.ts`, `cypress/e2e/typing.cy.ts`).
 - **Hosting model**: Static site; no backend services.
 
 ### Key data and assets
@@ -73,3 +73,4 @@ Use this at the start of every conversation to stay aligned with the project’s
 - Be concise and technical. Reference concrete file paths like `src/lib/...`.
 - Prefer minimal, safe edits with clear diffs. Verify against mapping JSONs when in doubt.
 - Consider offline behavior and caching whenever changing asset paths or fetch logic.
+- **Dev server**: During conversations, assume the local SvelteKit dev server is running (usually `http://localhost:3000`). Verify by checking port 3000 if needed.
