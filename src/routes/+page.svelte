@@ -166,7 +166,7 @@
             id="user-input"
             placeholder="輸入字句"
             rows="6"
-            class="w-full outline-none resize-none"
+            class="w-full outline-none resize-none text-lg"
             bind:value={userInputText}
             bind:this={textarea}
 ></textarea>
