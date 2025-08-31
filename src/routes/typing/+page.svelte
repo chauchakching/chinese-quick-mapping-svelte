@@ -14,7 +14,7 @@
   
   // Debug mode state
   let debugMode = $state(true);
-  const debugSnippet: [string, number] = ["了一個", 0];
+  const debugSnippet: [string, number] = ["靜了一個", 0];
   const debugSource: SnippetSourceMeta = { 
     id: "debug", 
     slug: "debug", 
