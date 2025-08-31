@@ -220,9 +220,11 @@
       modalChar = ''; // Reset character to prevent showing old images
     }}
   >
-    <CharDecompositionGraph
-      char={modalChar}
-      parts={chineseToParts(quickMapping, modes.cangjie, modalChar).parts}
-    />
+    <div class="w-full my-12 mx-12">
+      <CharDecompositionGraph
+        char={modalChar}
+        parts={chineseToParts(quickMapping, modes.cangjie, modalChar).parts}
+      />
+    </div>
   </Modal>
 </section>

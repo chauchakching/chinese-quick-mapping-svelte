@@ -9,8 +9,15 @@
       processTypingInput,
       resetTypingState,
       shuffle,
+      chineseToParts,
       type TypingTestState
   } from '$lib/utils';
+  import { modes } from '$lib/types';
+  import quickMapping from '$lib/ChineseQuickMappingSmall.json';
+  import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
+  import charsWithImages from '$lib/chars-with-images.json';
+
+  const charsWithImagesSet = new Set(charsWithImages);
   
   // Debug mode state
   let debugMode = $state(false);
@@ -71,6 +78,11 @@
   let progress = $derived(calculateTypingProgress(currentText, testState.userInput));
   let cpm = $derived(calculateCPM(testState.completedChars, testState.startTime || 0, testState.endTime || undefined));
   
+  // Current character decode logic
+  let currentChar = $derived(progress.currentChar);
+  let currentCharHasImages = $derived(currentChar && charsWithImagesSet.has(currentChar));
+  let currentCharParts = $derived(currentChar ? chineseToParts(quickMapping, modes.cangjie, currentChar).parts : '');
+  
   // Debug logging for user input
   $effect(() => {
     console.log('Current user input:', testState.userInput);
@@ -111,9 +123,24 @@
 
 <section class="w-full max-w-4xl mx-auto">
   <div class="bg-white rounded-lg shadow-md p-6 mb-6 max-w-xl mx-auto">
+    <!-- Current Character Decode Images -->
+    {#if currentCharHasImages && !testState.isCompleted}
+      <div class="mb-2">
+        <div class="flex justify-center items-center">
+          <div class="bg-gray-50 p-1 rounded-lg border" style="width: 112px;">
+            <CharDecompositionGraph
+              char={currentChar}
+              parts={currentCharParts}
+              imageStyle="width: 80px;"
+              charStyle="font-size: 14px; margin: 2px 3px;"
+            />
+          </div>
+        </div>
+      </div>
+    {/if}
+
     <!-- Practice Text Display -->
-    <div class="mb-6">
-      <h3 class="text-lg font-medium text-gray-700 mb-2">練習文本：</h3>
+    <div class="mb-2">
       <div class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono" data-testid="typing-text-display">
         {#each currentText.split('') as char, i}
           {@const charState = getCharacterDisplayState(i, char, progress)}
