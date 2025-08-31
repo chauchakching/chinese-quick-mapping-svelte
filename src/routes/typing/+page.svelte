@@ -21,7 +21,7 @@
   
   // Debug mode state
   let debugMode = $state(false);
-  const debugSnippet: [string, number] = ["靜靜，了一個", 0];
+  const debugSnippet: [string, number] = ["眞靜靜，了一個", 0];
   const debugSource: SnippetSourceMeta = { 
     id: "debug", 
     slug: "debug", 
@@ -29,6 +29,9 @@
     author: "Debug", 
     snippetCount: 1 
   };
+
+  // Image toggle state
+  let showCharImages = $state(true);
 
   // Snippet management - reactive state
   let sources: SnippetSourceMeta[] = $state([]);
@@ -123,17 +126,36 @@
 
 <section class="w-full max-w-4xl mx-auto">
   <div class="bg-white rounded-lg shadow-md p-6 mb-6 max-w-xl mx-auto">
+    <!-- Character Images Toggle -->
+    {#if !testState.isCompleted}
+      <div class="mb-4">
+        <div class="flex items-center justify-end gap-3">
+          <label class="inline-flex items-center cursor-pointer">
+            <span class="mr-2 text-sm font-medium text-gray-900 dark:text-gray-300">拆解圖</span>
+            <input 
+              type="checkbox" 
+              bind:checked={showCharImages}
+              class="sr-only peer"
+            />
+            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+          </label>
+        </div>
+      </div>
+    {/if}
+
     <!-- Current Character Decode Images -->
-    {#if currentCharHasImages && !testState.isCompleted}
+    {#if showCharImages && !testState.isCompleted}
       <div class="mb-2">
         <div class="flex justify-center items-center">
-          <div class="bg-gray-50 p-1 rounded-lg border" style="width: 112px;">
-            <CharDecompositionGraph
-              char={currentChar}
-              parts={currentCharParts}
-              imageStyle="width: 80px;"
-              charStyle="font-size: 14px; margin: 2px 3px;"
-            />
+          <div class="bg-gray-50 p-1 rounded-lg border" style="width: 112px; height: 102px;">
+            {#if currentCharParts && currentCharParts.length > 0}
+              <CharDecompositionGraph
+                char={currentChar}
+                parts={currentCharParts}
+                imageStyle="width: 80px;"
+                charStyle="font-size: 14px; margin: 2px 3px;"
+              />
+            {/if}
           </div>
         </div>
       </div>
