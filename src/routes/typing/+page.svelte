@@ -12,6 +12,17 @@
   } from '$lib/utils';
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
   
+  // Debug mode state
+  let debugMode = $state(true);
+  const debugSnippet: [string, number] = ["了一個", 0];
+  const debugSource: SnippetSourceMeta = { 
+    id: "debug", 
+    slug: "debug", 
+    title: "Debug Mode", 
+    author: "Debug", 
+    snippetCount: 1 
+  };
+
   // Snippet management - reactive state
   let sources: SnippetSourceMeta[] = $state([]);
   let snippets: [string, number][] = $state([]);
@@ -53,9 +64,9 @@
   
   const getText = (s: [string, number]) => s[0];
   const getMeta = (s: [string, number]) => sources[s[1]];
-  let currentSnippet = $derived(snippets.length ? snippets[currentSnippetIndex] : undefined);
+  let currentSnippet = $derived(debugMode ? debugSnippet : (snippets.length ? snippets[currentSnippetIndex] : undefined));
   let currentText = $derived(currentSnippet ? getText(currentSnippet) : '');
-  let currentMeta = $derived(currentSnippet ? getMeta(currentSnippet) : undefined);
+  let currentMeta = $derived(debugMode ? debugSource : (currentSnippet ? getMeta(currentSnippet) : undefined));
   // Chinese-only typing helpers and derived state
   let chineseIndices = $derived(currentText.split('').map((c, i) => (isChineseChar(c) ? i : -1)).filter((i) => i !== -1));
   let filteredChineseText = $derived(chineseIndices.map((i) => currentText[i]).join(''));
@@ -83,7 +94,10 @@
 
   
   const nextText = () => {
-    if (snippets.length) {
+    if (debugMode) {
+      // In debug mode, just reset the test state since there's only one snippet
+      testState = resetTypingState(testState);
+    } else if (snippets.length) {
       pickNextSnippet();
       testState = resetTypingState(testState);
     }
@@ -201,7 +215,7 @@
         data-testid="next-text-button"
       >
         <img src="/icons/arrow-right.svg" alt="下一個" class="h-4 w-4 mr-2" style="filter: invert(1);" />
-        下一個文本
+        {debugMode ? '重新開始' : '下一個文本'}
       </button>
     </div>
 
