@@ -199,7 +199,7 @@
     {/if}
     
     <!-- Control Buttons -->
-    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+    <div class="flex flex-row gap-3 justify-center">
       <button
         onclick={resetTest}
         class="flex items-center justify-center px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
