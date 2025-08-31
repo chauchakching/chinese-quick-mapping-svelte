@@ -1,19 +1,36 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  
-
-  
-  // Snippets loaded from static/texts/snippets.json
+  import { 
+    shuffle,
+    type TypingTestState, 
+    createInitialTypingState, 
+    resetTypingState, 
+    processTypingInput,
+    calculateCPM,
+    calculateAccuracy
+  } from '$lib/utils';
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
-  let snippets: [string, number][] = $state([]);
+  
+  // Snippet management - reactive state
   let sources: SnippetSourceMeta[] = $state([]);
-  let remainingIndices: number[] = $state([]); // shuffled pool of indices; pop() to avoid reuse
+  let snippets: [string, number][] = $state([]);
+  let remainingIndices: number[] = $state([]);
   let currentSnippetIndex = $state(0);
 
-  function shuffle(arr: number[]) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+  async function loadSnippets() {
+    if (!browser || snippets.length) return;
+    try {
+      const res = await fetch('/texts/snippets.json');
+      if (res.ok) {
+        const data: NormalizedSnippetsPayload = await res.json();
+        sources = data.sources;
+        snippets = data.snippets;
+        initSnippetOrder();
+        pickNextSnippet();
+        testState = resetTypingState(testState);
+      }
+    } catch (e) {
+      console.warn('Failed to load snippets:', e);
     }
   }
 
@@ -29,135 +46,36 @@
     if (idx !== undefined) currentSnippetIndex = idx;
   }
 
-  async function loadSnippets() {
-    if (!browser || snippets.length) return;
-    try {
-      const res = await fetch('/texts/snippets.json');
-      if (res.ok) {
-        const data: NormalizedSnippetsPayload = await res.json();
-        sources = data.sources;
-        snippets = data.snippets;
-        initSnippetOrder();
-        pickNextSnippet();
-        resetTest();
-      }
-    } catch (e) {
-      console.warn('Failed to load snippets:', e);
-    }
-  }
 
-
-  let userInput = $state('');
-  let completedChars = $state(0);
-  let startTime = $state<number | null>(null);
-  let endTime = $state<number | null>(null);
-  let isCompleted = $state(false);
-  let totalErrors = $state(0);
-  let lastErrorChar = $state('');
+  // Typing test state
+  let testState: TypingTestState = $state(createInitialTypingState());
   
   const getText = (s: [string, number]) => s[0];
   const getMeta = (s: [string, number]) => sources[s[1]];
-  let currentText = $derived(snippets.length ? getText(snippets[currentSnippetIndex]) : '');
-  let currentMeta = $derived(snippets.length ? getMeta(snippets[currentSnippetIndex]) : undefined);
-  let currentChar = $derived(currentText[completedChars] || '');
-  let accuracy = $derived(completedChars > 0 ? 
-    ((completedChars) / (completedChars + totalErrors) * 100) : 100);
+  let currentSnippet = $derived(snippets.length ? snippets[currentSnippetIndex] : undefined);
+  let currentText = $derived(currentSnippet ? getText(currentSnippet) : '');
+  let currentMeta = $derived(currentSnippet ? getMeta(currentSnippet) : undefined);
+  let currentChar = $derived(currentText[testState.completedChars] || '');
+  let accuracy = $derived(calculateAccuracy(testState.completedChars, testState.totalErrors));
+  let cpm = $derived(calculateCPM(testState.completedChars, testState.startTime || 0, testState.endTime || undefined));
   
-  // Calculate CPM (Characters Per Minute) based on matched characters and elapsed time
-  let cpm = $derived.by(() => {
-    if (!startTime) return 0;
-    
-    const currentTime = isCompleted && endTime ? endTime : Date.now();
-    const elapsedTimeMinutes = (currentTime - startTime) / 60000;
-    
-    if (elapsedTimeMinutes === 0 || completedChars === 0) return 0;
-    
-    // CPM = characters completed per minute
-    return Math.round(completedChars / elapsedTimeMinutes);
-  });
-  
-  /**
-   * TYPING LOGIC EXPLANATION & DESIGN RATIONALE
-   * 
-   * This handles character-by-character progression for Chinese typing practice.
-   * The logic is designed to work naturally with Chinese Input Method Editors (IME).
-   * 
-   * BACKGROUND - Chinese IME Behavior:
-   * - Single-radical characters (1 key) require space/enter to confirm in OS
-   * - Immediate character removal interrupts this natural confirmation process
-   * - Browser only sees final committed characters, not intermediate IME states
-   * - Users expect to see character composition while typing
-   * 
-   * SOLUTION - "Next Character Confirmation" Pattern:
-   * 1. User types correct character -> keep it visible in input
-   * 2. User types next character -> if also correct, remove previous character
-   * 3. For last character -> complete immediately (no next char to wait for)
-   * 
-   * EDGE CASES HANDLED:
-   * - Last character: Complete immediately when typed correctly
-   * - Wrong characters: Keep in input for natural correction
-   * - Error tracking: Count unique mistakes per position
-   * - IME composition: Never interrupt character input process
-   * 
-   * This maintains natural Chinese typing flow while providing clear progress feedback.
-   */
-  const handleInput = () => {
-    // Start timing only when user starts typing (not just when component loads)
-    if (!startTime && userInput.length >= 1 && completedChars === 0) {
-      startTime = Date.now();
-      isCompleted = false;
-    }
-    
-    const expectedChar = currentText[completedChars];
-    const isLastChar = completedChars === currentText.length - 1;
-    
-    // Check if first character in input matches expected character
-    if (userInput.length >= 1 && userInput[0] === expectedChar) {
-      if (isLastChar) {
-        // EDGE CASE: Last character - complete immediately since no next char to wait for
-        completedChars += 1;
-        userInput = '';
-        endTime = Date.now();
-        isCompleted = true;
-      } else if (userInput.length >= 2) {
-        // Not the last character - check if next character also matches
-        const nextExpectedChar = currentText[completedChars + 1];
-        if (userInput[1] === nextExpectedChar) {
-          // Next character matches too - NOW we can safely remove completed character
-          completedChars += 1;
-          lastErrorChar = ''; // Reset error tracking for next character
-          userInput = userInput.slice(1); // Remove the completed character
-        }
-      }
-      // If only 1 char and not last: wait for next character (IME-friendly)
-    } else if (userInput.length >= 1 && userInput[0] !== expectedChar && userInput[0] !== lastErrorChar) {
-      // First character is wrong - keep in input for natural correction
-      totalErrors += 1;
-      lastErrorChar = userInput[0];
-    }
-  };
+
   
   const nextText = () => {
     if (snippets.length) {
       pickNextSnippet();
-      resetTest();
+      testState = resetTypingState(testState);
     }
   };
   
   const resetTest = () => {
-    userInput = '';
-    completedChars = 0;
-    totalErrors = 0;
-    lastErrorChar = '';
-    startTime = null;
-    endTime = null;
-    isCompleted = false;
+    testState = resetTypingState(testState);
   };
   
-  // Watch for input changes
-  $effect(() => {
-    handleInput();
-  });
+  // Handle input changes on user interaction
+  const onInput = () => {
+    testState = processTypingInput(testState, currentText);
+  };
 
   // Load snippets on mount (browser only)
   $effect(() => {
@@ -178,9 +96,9 @@
       <h3 class="text-lg font-medium text-gray-700 mb-2">練習文本：</h3>
       <div class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono">
         {#each currentText.split('') as char, i}
-          {@const isCompleted = i < completedChars || (i >= completedChars && i < completedChars + userInput.length && userInput[i - completedChars] === char)}
-          {@const allTypedMatch = userInput.split('').every((inputChar, idx) => inputChar === currentText[completedChars + idx])}
-          {@const currentPosition = allTypedMatch ? completedChars + userInput.length : completedChars}
+          {@const isCompleted = i < testState.completedChars || (i >= testState.completedChars && i < testState.completedChars + testState.userInput.length && testState.userInput[i - testState.completedChars] === char)}
+          {@const allTypedMatch = testState.userInput.split('').every((inputChar, idx) => inputChar === currentText[testState.completedChars + idx])}
+          {@const currentPosition = allTypedMatch ? testState.completedChars + testState.userInput.length : testState.completedChars}
           {@const isCurrent = i === currentPosition}
           <span class={`${
             isCompleted
@@ -197,10 +115,11 @@
     <div class="mb-4">
       <input
         type="text"
-        bind:value={userInput}
-        placeholder={isCompleted ? "已完成！" : "開始打字..."}
+        bind:value={testState.userInput}
+        oninput={onInput}
+        placeholder={testState.isCompleted ? "已完成！" : "開始打字..."}
         class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-mono text-center"
-        disabled={isCompleted}
+        disabled={testState.isCompleted}
         autocomplete="off"
         autocorrect="off"
         autocapitalize="off"
@@ -216,7 +135,7 @@
     </div>
     
     <!-- Completion Message -->
-    {#if isCompleted}
+    {#if testState.isCompleted}
       <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
         <div class="flex items-center">
           <img src="/icons/check.svg" alt="完成" class="h-5 w-5 mr-2" />
@@ -224,8 +143,8 @@
         </div>
         <div class="mt-2 text-sm">
           準確度: {Math.round(accuracy)}% | 速度: {cpm} 字/分鐘 | 
-          用時: {startTime && endTime ? Math.round((endTime - startTime) / 1000) : 0} 秒 | 
-          錯誤: {totalErrors} 次
+          用時: {testState.startTime && testState.endTime ? Math.round((testState.endTime - testState.startTime) / 1000) : 0} 秒 | 
+          錯誤: {testState.totalErrors} 次
         </div>
         {#if currentMeta?.title || currentMeta?.author}
           <div class="mt-2 text-xs text-gray-700">
