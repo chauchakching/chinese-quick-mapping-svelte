@@ -64,7 +64,7 @@ This writes full texts and updates `static/texts/metadata.json`.
 npm run build:snippets
 ```
 
-Outputs `static/texts/snippets.json` with fields:
+Outputs `static/texts/snippets.json` (normalized) with fields:
 
 ```json
 {
@@ -73,12 +73,28 @@ Outputs `static/texts/snippets.json` with fields:
   "snippetCount": 100,
   "minLen": 28,
   "maxLen": 68,
-  "snippets": ["……"]
+  "sources": [
+    {
+      "id": "luxun-kongyiji",
+      "slug": "魯迅_孔乙己",
+      "title": "孔乙己",
+      "author": "魯迅",
+      "sourceUrl": "...",
+      "license": "...",
+      "snippetCount": 123
+    }
+  ],
+  "snippets": [["……", 0]]
 }
 ```
+
+Notes:
+
+- `snippets` is an array of `[text, sourceIndex]` tuples referencing `sources`.
+- `sources[i].snippetCount` shows how many snippets came from that source.
 
 ### Using snippets in the app
 
 - Visit `/typing`.
-- The page loads `static/texts/snippets.json` when available; otherwise falls back to a small built‑in list.
+- The page loads the normalized `static/texts/snippets.json` and requires this schema.
 - It keeps an in‑memory shuffled pool and avoids reuse until all snippets are seen, then reshuffles.

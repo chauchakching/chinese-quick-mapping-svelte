@@ -4,7 +4,9 @@
 
   
   // Snippets loaded from static/texts/snippets.json
-  let snippets: string[] = $state([]);
+  import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
+  let snippets: [string, number][] = $state([]);
+  let sources: SnippetSourceMeta[] = $state([]);
   let remainingIndices: number[] = $state([]); // shuffled pool of indices; pop() to avoid reuse
   let currentSnippetIndex = $state(0);
 
@@ -30,15 +32,14 @@
   async function loadSnippets() {
     if (!browser || snippets.length) return;
     try {
-      const res = await fetch('/texts/snippets.json', { cache: 'force-cache' });
+      const res = await fetch('/texts/snippets.json');
       if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data?.snippets) && data.snippets.length > 0) {
-          snippets = data.snippets as string[];
-          initSnippetOrder();
-          pickNextSnippet();
-          resetTest();
-        }
+        const data: NormalizedSnippetsPayload = await res.json();
+        sources = data.sources;
+        snippets = data.snippets;
+        initSnippetOrder();
+        pickNextSnippet();
+        resetTest();
       }
     } catch (e) {
       console.warn('Failed to load snippets:', e);
@@ -54,7 +55,10 @@
   let totalErrors = $state(0);
   let lastErrorChar = $state('');
   
-  let currentText = $derived(snippets.length ? snippets[currentSnippetIndex] : '');
+  const getText = (s: [string, number]) => s[0];
+  const getMeta = (s: [string, number]) => sources[s[1]];
+  let currentText = $derived(snippets.length ? getText(snippets[currentSnippetIndex]) : '');
+  let currentMeta = $derived(snippets.length ? getMeta(snippets[currentSnippetIndex]) : undefined);
   let currentChar = $derived(currentText[completedChars] || '');
   let accuracy = $derived(completedChars > 0 ? 
     ((completedChars) / (completedChars + totalErrors) * 100) : 100);
@@ -223,6 +227,11 @@
           用時: {startTime && endTime ? Math.round((endTime - startTime) / 1000) : 0} 秒 | 
           錯誤: {totalErrors} 次
         </div>
+        {#if currentMeta?.title || currentMeta?.author}
+          <div class="mt-2 text-xs text-gray-700">
+            來源：{currentMeta?.title}{currentMeta?.author ? `（${currentMeta.author}）` : ''}
+          </div>
+        {/if}
       </div>
     {/if}
     

@@ -11,7 +11,7 @@ const METADATA_PATH = path.join(STATIC_TEXTS_DIR, 'metadata.json');
 const MIN_SNIPPET_LEN = 28; // inclusive
 const MAX_SNIPPET_LEN = 68; // inclusive
 const HAN_RATIO_THRESHOLD = 0.85; // proportion of Han chars (after filtering)
-const SPLIT_LONG_SENTENCE_THRESHOLD = 80; // further split long sentences by comma
+const SPLIT_LONG_SENTENCE_THRESHOLD = MAX_SNIPPET_LEN; // further split long sentences by comma when over max length
 const MIN_CLAUSE_LEN = 16; // when splitting by comma, keep clauses >= this length
 
 // Allowed punctuation for Chinese sentences
@@ -30,10 +30,12 @@ function keepMostlyHan(text) {
   const filtered = Array.from(text)
     .filter((ch) => allowed.test(ch))
     .join('');
-  // ratio of Han (and CJK punct) to total after filtering should be high
+  // Compute ratio ignoring whitespace and common CJK punctuation (we show but don't require typing them)
   const hanRe = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/g;
-  const total = filtered.length || 1;
-  const hanCount = (filtered.match(hanRe) || []).length;
+  const punctRe = new RegExp(`[${CH_PUNCT}]`, 'g');
+  const base = filtered.replace(/\s+/g, '').replace(punctRe, '');
+  const total = base.length || 1;
+  const hanCount = (base.match(hanRe) || []).length;
   const ratio = hanCount / total;
   return ratio >= HAN_RATIO_THRESHOLD ? filtered : '';
 }
@@ -66,12 +68,26 @@ function trimLeadingNonHan(text) {
 
 function windowByLength(sentences, minLen = MIN_SNIPPET_LEN, maxLen = MAX_SNIPPET_LEN) {
   const out = [];
-  for (const s of sentences) {
-    let t = s.replace(/\s+/g, '');
-    // Ensure starts with Han: trim leading non-Han, then check
-    t = trimLeadingNonHan(t);
-    if (!t || !HAN_CHAR_RE.test(t[0])) continue;
-    if (t.length >= minLen && t.length <= maxLen) out.push(t);
+  for (let i = 0; i < sentences.length; i++) {
+    let acc = '';
+    for (let j = i; j < sentences.length; j++) {
+      let t = sentences[j].replace(/\s+/g, '');
+      // Ensure starts with Han: trim leading non-Han, then check
+      t = trimLeadingNonHan(t);
+      if (!t || !HAN_CHAR_RE.test(t[0])) continue;
+
+      const candidate = acc + t;
+      if (candidate.length > maxLen) {
+        if (acc && acc.length >= minLen) out.push(acc);
+        break;
+      }
+
+      acc = candidate;
+      if (acc.length >= minLen && acc.length <= maxLen) {
+        out.push(acc);
+        break; // move start window forward
+      }
+    }
   }
   return out;
 }
@@ -89,29 +105,76 @@ async function build() {
 
   let snippets = [];
 
-  for (const tf of textFiles) {
+  // Build sources list from available text files (preserve file order)
+  const sources = textFiles.map((tf) => {
+    const slug = path.basename(tf, '.txt');
+    const m = Array.isArray(metadata) ? metadata.find((x) => x && x.slug === slug) : undefined;
+    return {
+      id: m?.id || slug,
+      slug,
+      title: m?.title || '',
+      author: m?.author || '',
+      sourceUrl: m?.sourceUrl || '',
+      license: m?.license || ''
+    };
+  });
+
+  for (let i = 0; i < textFiles.length; i++) {
+    const tf = textFiles[i];
     const full = await fs.readFile(path.join(STATIC_TEXTS_DIR, tf), 'utf8');
     const norm = normalizeWhitespace(full);
     const hanOnly = keepMostlyHan(norm);
     if (!hanOnly) continue;
     const sentences = splitIntoSentences(hanOnly);
     const bounded = windowByLength(sentences);
-    snippets = snippets.concat(bounded);
+
+    // Create normalized tuples: [text, sourceIndex]
+    const tuples = bounded.map((text) => [text, i]);
+    snippets = snippets.concat(tuples);
   }
 
-  const unique = dedupe(snippets);
+  // Dedupe by text content, keep first seen tuple
+  const byText = new Map();
+  for (const s of snippets) {
+    const key = Array.isArray(s) ? s[0] : typeof s === 'string' ? s : s.text;
+    if (!byText.has(key)) byText.set(key, s);
+  }
+  /** @type {Array<[string, number]>} */
+  const unique = Array.from(byText.values()).map((v) => {
+    if (Array.isArray(v)) return /** @type {[string, number]} */ (v);
+    if (typeof v === 'string') return [v, 0];
+    return [
+      v.text,
+      Math.max(
+        0,
+        sources.findIndex((s) => s.slug === v.slug)
+      )
+    ];
+  });
   // Shuffle for variety
   for (let i = unique.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [unique[i], unique[j]] = [unique[j], unique[i]];
   }
 
+  // Compute per-source counts
+  const sourceCounts = Array.from({ length: sources.length }, () => 0);
+  for (const [_, idx] of unique) {
+    if (Number.isInteger(idx) && idx >= 0 && idx < sourceCounts.length) {
+      sourceCounts[idx] += 1;
+    }
+  }
+
+  // Merge counts into sources
+  const sourcesWithCounts = sources.map((s, i) => ({ ...s, snippetCount: sourceCounts[i] }));
+
   const payload = {
     createdAt: new Date().toISOString(),
-    sourceCount: textFiles.length,
+    sourceCount: sources.length,
     snippetCount: unique.length,
     minLen: MIN_SNIPPET_LEN,
     maxLen: MAX_SNIPPET_LEN,
+    sources: sourcesWithCounts,
     snippets: unique
   };
 

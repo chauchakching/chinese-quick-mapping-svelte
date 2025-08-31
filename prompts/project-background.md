@@ -4,13 +4,14 @@ Use this at the start of every conversation to stay aligned with the project’s
 
 ### What this is
 
-- **Purpose**: A website for checking Traditional Chinese 速成 (Quick) and 倉頡 (Cangjie) character parts and keyboard codes.
-- **Scope**: Reference and visualization tool (not an input method editor). Client-only, offline-capable PWA.
+- **Purpose**: A website for checking Traditional Chinese 速成 (Quick) and 倉頡 (Cangjie) character parts and keyboard codes, plus typing practice.
+- **Scope**: Reference, visualization, and typing practice tool (not an input method editor). Client-only, offline-capable PWA.
 
 ### Core capabilities
 
 - **Lookup**: Search Traditional Chinese characters to show 速成/倉頡 codes.
 - **Decomposition**: Visualize character components/parts and their mapping to keys.
+- **Typing Practice**: Test Chinese typing skills with curated text snippets, real-time CPM/accuracy tracking, and IME-friendly input handling.
 - **Assets**: Per-character SVGs and mapping JSONs, cached for offline use.
 
 ### Tech stack
@@ -30,14 +31,18 @@ Use this at the start of every conversation to stay aligned with the project’s
   - `src/lib/chars-with-images.json`
 - **Character SVGs**:
   - `static/chars/*.svg` (~39k files)
+- **Typing Practice Texts**:
+  - `static/texts/*.txt` (7 source texts)
+  - `static/texts/snippets.json` (normalized: sources[] with per-source snippetCount, and snippets as `[text, sourceIndex]` tuples; 28–68 chars)
+  - `static/texts/metadata.json` (text metadata and attribution)
 
 ### Important files/directories
 
-- **UI**: `src/routes/+page.svelte` (main), `src/routes/+layout.svelte`, `src/routes/about/+page.svelte`
+- **UI**: `src/routes/+page.svelte` (main lookup), `src/routes/typing/+page.svelte` (typing practice), `src/routes/+layout.svelte`
 - **Components**: `src/lib/CharDecompositionGraph.svelte`, `src/lib/Message.svelte`, `src/lib/Modal.svelte`
 - **Logic/Types**: `src/lib/keyToQuickUnit.ts`, `src/lib/types.ts`, `src/lib/utils.ts`
 - **PWA**: `static/service-worker.js`, `static/manifest.webmanifest`
-- **Scripts**: `scripts/generate-small-mapping.js`, `scripts/get-chars-with-chinese-images.js`, `scripts/scrap-*`
+- **Scripts**: `scripts/generate-small-mapping.js`, `scripts/get-chars-with-chinese-images.js`, `scripts/scrap-*`, `scripts/fetch_texts.mjs`, `scripts/build_snippets.mjs`
 - **Tests**: `cypress/e2e/sanity.cy.ts`
 
 ### Conventions and constraints
@@ -53,12 +58,13 @@ Use this at the start of every conversation to stay aligned with the project’s
 
 - Improve search and mapping accuracy; add or correct Quick/Cangjie codes.
 - Enhance decomposition visuals and UX in `+page.svelte` and `CharDecompositionGraph.svelte`.
+- Expand typing practice: add new text sources, adjust snippet extraction rules, improve typing algorithm.
 - Optimize asset loading/caching strategies and service worker updates.
 - Update Cypress tests when UI/flows change.
 
 ### Non-goals
 
-- Not an IME/keyboard; purely a reference/visualization tool.
+- Not an IME/keyboard; purely a reference, visualization, and typing practice tool.
 - Not focused on Simplified Chinese unless explicitly requested.
 - Avoid server-side components unless requirements change.
 
