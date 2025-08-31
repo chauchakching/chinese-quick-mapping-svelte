@@ -7,14 +7,13 @@
     resetTypingState, 
     processTypingInput,
     calculateCPM,
-    calculateAccuracy,
     isChineseChar
   } from '$lib/utils';
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
   
   // Debug mode state
-  let debugMode = $state(false);
-  const debugSnippet: [string, number] = ["靜了一個", 0];
+  let debugMode = $state(true);
+  const debugSnippet: [string, number] = ["靜", 0];
   const debugSource: SnippetSourceMeta = { 
     id: "debug", 
     slug: "debug", 
@@ -84,7 +83,6 @@
   let currentChinesePosition = $derived(testState.completedChars + matchedChinesePrefixLen);
   let currentChineseCharIndex = $derived(chineseIndices[currentChinesePosition] ?? -1);
   let currentChar = $derived(currentChineseCharIndex >= 0 ? currentText[currentChineseCharIndex] : '');
-  let accuracy = $derived(calculateAccuracy(testState.completedChars, testState.totalErrors));
   let cpm = $derived(calculateCPM(testState.completedChars, testState.startTime || 0, testState.endTime || undefined));
   
   // Debug logging for user input
@@ -154,29 +152,41 @@
       </div>
     </div>
     
-    <!-- User Input Area -->
-    <div class="mb-4">
-      <input
-        type="text"
-        bind:value={testState.userInput}
-        oninput={onInput}
-        placeholder={testState.isCompleted ? "已完成！" : "開始打字..."}
-        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-mono text-center"
-        disabled={testState.isCompleted}
-        autocomplete="off"
-        autocorrect="off"
-        autocapitalize="off"
-        spellcheck="false"
-        data-testid="typing-input"
-      />
-    </div>
-    
-    <!-- Statistics -->
-    <div class="flex justify-center mb-4">
-      <div class="flex gap-6 text-sm text-gray-600" data-testid="typing-stats">
-        <span>速度: <span class="font-medium text-gray-800">{cpm}</span> 字/分鐘</span>
+    <!-- Book Source (only when completed) -->
+    {#if testState.isCompleted && currentMeta?.title}
+      <div class="mb-4 text-center">
+        <div class="text-sm text-gray-600 bg-gray-50 py-2 px-4 rounded-lg inline-block">
+          來源：{currentMeta.title}{currentMeta.author ? `（${currentMeta.author}）` : ''}
+        </div>
       </div>
-    </div>
+    {/if}
+    
+    <!-- User Input Area (only when not completed) -->
+    {#if !testState.isCompleted}
+      <div class="mb-4">
+        <input
+          type="text"
+          bind:value={testState.userInput}
+          oninput={onInput}
+          placeholder="開始打字..."
+          class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-mono text-center"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-testid="typing-input"
+        />
+      </div>
+    {/if}
+    
+    <!-- Statistics (only during typing) -->
+    {#if !testState.isCompleted}
+      <div class="flex justify-center mb-4">
+        <div class="flex gap-6 text-sm text-gray-600" data-testid="typing-stats">
+          <span>速度: <span class="font-medium text-gray-800">{cpm}</span> 字/分鐘</span>
+        </div>
+      </div>
+    {/if}
     
     <!-- Completion Message -->
     {#if testState.isCompleted}
@@ -185,16 +195,20 @@
           <img src="/icons/check.svg" alt="完成" class="h-5 w-5 mr-2" />
           <span class="font-medium">恭喜完成！</span>
         </div>
-        <div class="mt-2 text-sm">
-          準確度: {Math.round(accuracy)}% | 速度: {cpm} 字/分鐘 | 
-          用時: {testState.startTime && testState.endTime ? Math.round((testState.endTime - testState.startTime) / 1000) : 0} 秒 | 
-          錯誤: {testState.totalErrors} 次
-        </div>
-        {#if currentMeta?.title || currentMeta?.author}
-          <div class="mt-2 text-xs text-gray-700">
-            來源：{currentMeta?.title}{currentMeta?.author ? `（${currentMeta.author}）` : ''}
+        <div class="mt-3 grid grid-cols-3 gap-4 text-sm">
+          <div class="text-center">
+            <div class="text-gray-600 text-xs mb-1">速度</div>
+            <div class="font-medium text-gray-800">{cpm} 字/分鐘</div>
           </div>
-        {/if}
+          <div class="text-center">
+            <div class="text-gray-600 text-xs mb-1">用時</div>
+            <div class="font-medium text-gray-800">{testState.startTime && testState.endTime ? Math.round((testState.endTime - testState.startTime) / 1000) : 0} 秒</div>
+          </div>
+          <div class="text-center">
+            <div class="text-gray-600 text-xs mb-1">字數</div>
+            <div class="font-medium text-gray-800">{filteredChineseText.length} 字</div>
+          </div>
+        </div>
       </div>
     {/if}
     
