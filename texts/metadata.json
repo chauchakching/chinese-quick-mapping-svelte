@@ -1,0 +1,58 @@
+[
+  {
+    "id": "zhu-ziqing-beiying",
+    "slug": "朱自清_背影",
+    "title": "背影",
+    "author": "朱自清",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E8%83%8C%E5%BD%B1",
+    "license": "PD (verify per page)"
+  },
+  {
+    "id": "zhu-ziqing-hetang-yuese",
+    "slug": "朱自清_荷塘月色",
+    "title": "荷塘月色",
+    "author": "朱自清",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E8%8D%B7%E5%A1%98%E6%9C%88%E8%89%B2",
+    "license": "PD (verify per page)"
+  },
+  {
+    "id": "luxun-kongyiji",
+    "slug": "魯迅_孔乙己",
+    "title": "孔乙己",
+    "author": "魯迅",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E5%AD%94%E4%B9%99%E5%B7%B1",
+    "license": "PD (verify per page)"
+  },
+  {
+    "id": "luxun-guxiang",
+    "slug": "魯迅_故鄉",
+    "title": "故鄉",
+    "author": "魯迅",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E6%95%85%E9%84%89",
+    "license": "PD (verify per page)"
+  },
+  {
+    "id": "luxun-kuangrenriji",
+    "slug": "魯迅_狂人日記",
+    "title": "狂人日記",
+    "author": "魯迅",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E7%8B%82%E4%BA%BA%E6%97%A5%E8%A8%98",
+    "license": "PD (verify per page)"
+  },
+  {
+    "id": "xudishan-luohuasheng",
+    "slug": "許地山_落花生",
+    "title": "落花生",
+    "author": "許地山",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E8%90%BD%E8%8A%B1%E7%94%9F",
+    "license": "PD (verify per page)"
+  },
+  {
+    "id": "xudishan-mingmingniao",
+    "slug": "許地山_命命鳥",
+    "title": "命命鳥",
+    "author": "許地山",
+    "sourceUrl": "https://zh.wikisource.org/wiki/%E5%91%BD%E5%91%BD%E9%B3%A5",
+    "license": "PD (verify per page)"
+  }
+]
