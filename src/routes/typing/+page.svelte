@@ -130,7 +130,7 @@
                     : isCurrentChinese
                       ? 'bg-blue-100 text-blue-700 animate-pulse'
                       : 'text-gray-400 opacity-60')
-                : ''
+                : 'text-gray-400 opacity-60'
             }`}
             data-testid="typing-char"
             data-char-index={i}
