@@ -5,6 +5,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname); // scripts dir
 const PROJECT_ROOT = path.resolve(ROOT, '..');
 const STATIC_TEXTS_DIR = path.join(PROJECT_ROOT, 'static', 'texts');
+const HTML_CACHE_DIR = path.join(PROJECT_ROOT, 'html-cache');
 const SOURCES_PATH = path.join(ROOT, 'texts-sources.json');
 
 async function ensureDir(dir) {
@@ -68,6 +69,13 @@ async function fetchWikisourcePlainTextByTitle(title) {
 }
 
 async function fetchWikisourceHtmlByTitle(title) {
+  // Check cache first
+  const cachedHtml = await getCachedHtml(title);
+  if (cachedHtml) {
+    return extractMainContent(cachedHtml);
+  }
+
+  // Fetch from API if not cached
   const api = new URL('https://zh.wikisource.org/w/api.php');
   api.searchParams.set('action', 'parse');
   api.searchParams.set('prop', 'text');
@@ -80,6 +88,16 @@ async function fetchWikisourceHtmlByTitle(title) {
   if (typeof html !== 'string' || html.length === 0) {
     throw new Error(`No HTML for ${title}`);
   }
+
+  // Save to cache for future use
+  await saveHtmlToCache(title, html);
+
+  return extractMainContent(html);
+}
+
+function extractMainContent(html) {
+  // Don't pre-filter HTML content here - let htmlToPlain handle the filtering
+  // The HTML from Wikisource API already contains mainly the content area
   return html;
 }
 
@@ -100,22 +118,95 @@ function decodeEntities(str) {
 }
 
 function htmlToPlain(html) {
-  let s = html;
-  // Replace block tags with newlines to keep paragraphs
-  s = s.replace(/<\s*br\s*\/?>/gi, '\n');
-  s = s.replace(/<\s*\/p\s*>/gi, '\n');
-  s = s.replace(/<\s*li\s*>/gi, '\n• ');
-  s = s.replace(/<\s*\/h[1-6]\s*>/gi, '\n');
-  s = s.replace(/<\s*\/tr\s*>/gi, '\n');
-  // Remove all remaining tags
-  s = s.replace(/<[^>]+>/g, '');
-  // Decode entities
-  s = decodeEntities(s);
-  // Remove reference markers like [1]
-  s = s.replace(/\[[0-9]+\]/g, '');
-  // Collapse excessive blank lines
-  s = s.replace(/\n{3,}/g, '\n\n');
-  return s.trim();
+  // First, remove problematic elements that contain licensing/metadata
+  let s = html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gis, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gis, '')
+    .replace(/<link[^>]*href="mw-data:TemplateStyles[^"]*"[^>]*>/gis, '')
+    .replace(/<div[^>]*class="[^"]*licenseContainer[^"]*"[^>]*>[\s\S]*?<\/div>/gis, '')
+    .replace(/<div[^>]*class="[^"]*licensetpl[^"]*"[^>]*>[\s\S]*?<\/div>/gis, '');
+
+  // Extract article metadata from Wikisource header structure
+  let title = '';
+  let author = '';
+  let date = '';
+
+  // Look for title in headerContainer table structure
+  const headerMatch = s.match(/<div id="headerContainer">[\s\S]*?<\/table>/i);
+  if (headerMatch) {
+    const headerContent = headerMatch[0];
+
+    // Extract title (usually in <b> tags)
+    const titleMatch = headerContent.match(/<b>([^<]+)<\/b>/);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+    }
+
+    // Extract author (after "作者：" text)
+    const authorMatch = headerContent.match(/作者[：:].*?title="Author:[^"]*">([^<]+)<\/a>/i);
+    if (authorMatch) {
+      author = `作者：${authorMatch[1].trim()}`;
+    }
+
+    // Extract date
+    const dateMatch = headerContent.match(/(\d{4}年\d{1,2}月(?:\d{1,2}日)?)/);
+    if (dateMatch) {
+      date = dateMatch[1];
+    }
+  }
+
+  // Extract main content from paragraph elements only
+  const paragraphs = [];
+  const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+  let match;
+
+  while ((match = pRegex.exec(s)) !== null) {
+    let pContent = match[1];
+
+    // Skip paragraphs that contain metadata/navigation/licensing markers
+    if (
+      pContent.match(
+        /(姊妹計劃|此版本取自|本作品收錄於|數據項|百科|粵典|←|→|\d{4}年\d+月\d+日.*?公有領域|這部作品.*?公有領域|本作品現時在大中華|根據.*?著作權法|據.*?著作權法釋義|魯迅全集.*?出版)/
+      )
+    ) {
+      continue;
+    }
+
+    // Remove HTML tags and decode entities
+    pContent = pContent
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+      .replace(/\[[0-9]+\]/g, '') // Remove reference markers
+      .replace(/\[編輯\]/g, '') // Remove edit markers
+      .trim();
+
+    // Skip empty or very short paragraphs
+    if (pContent.length < 15) {
+      continue;
+    }
+
+    paragraphs.push(pContent);
+  }
+
+  // Combine metadata and content
+  const parts = [];
+  if (title) parts.push(title);
+  if (author) parts.push(author);
+  if (date) parts.push(date);
+  if (parts.length > 0) parts.push(''); // Add blank line after metadata
+  parts.push(...paragraphs);
+
+  return parts
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n') // Collapse excessive blank lines
+    .replace(/[ \t]+/g, ' ') // Collapse multiple spaces
+    .trim();
 }
 
 async function convertToTaiwanVariant(text) {
@@ -150,13 +241,32 @@ function sanitizeForFs(name) {
   return name.replace(/[\\/:*?"<>|]/g, '_');
 }
 
-async function main() {
-  await ensureDir(STATIC_TEXTS_DIR);
-  const sources = await readSources();
-  const metadata = [];
+async function getCachedHtml(title) {
+  const filename = sanitizeForFs(title) + '.html';
+  const cacheFile = path.join(HTML_CACHE_DIR, filename);
+  try {
+    const html = await fs.readFile(cacheFile, 'utf8');
+    console.log(`Using cached HTML: ${filename}`);
+    return html;
+  } catch {
+    return null; // Cache miss
+  }
+}
 
-  for (const s of sources) {
-    const candidates = buildCandidateTitles(s);
+async function saveHtmlToCache(title, html) {
+  await ensureDir(HTML_CACHE_DIR);
+  const filename = sanitizeForFs(title) + '.html';
+  const cacheFile = path.join(HTML_CACHE_DIR, filename);
+  await fs.writeFile(cacheFile, html, 'utf8');
+  console.log(`Cached HTML: ${filename}`);
+}
+
+async function processSource(source, semaphore) {
+  // Acquire semaphore for rate limiting
+  await semaphore.acquire();
+
+  try {
+    const candidates = buildCandidateTitles(source);
     let plain = null;
     let usedTitle = null;
 
@@ -181,35 +291,85 @@ async function main() {
     }
 
     if (!plain) {
-      console.error(`Failed: ${s.id} ${s.title}: no extract via candidates`);
-      continue;
+      console.error(`Failed: ${source.id} ${source.title}: no extract via candidates`);
+      return null;
     }
 
-    console.log(`Fetched: ${s.author}《${s.title}》 via ${usedTitle}`);
+    console.log(`Fetched: ${source.author}《${source.title}》 via ${usedTitle}`);
 
     try {
       const tc = await convertToTaiwanVariant(plain);
-      const filename = sanitizeForFs(`${s.slug}.txt`);
+      const filename = sanitizeForFs(`${source.slug}.txt`);
       const outPath = path.join(STATIC_TEXTS_DIR, filename);
       await fs.writeFile(outPath, tc, 'utf8');
-      metadata.push({
-        id: s.id,
-        slug: s.slug,
-        title: s.title,
-        author: s.author,
-        sourceUrl: s.sourceUrl,
-        license: s.license
-      });
       console.log(`Saved: ${outPath}`);
-      await sleep(200);
+
+      return {
+        id: source.id,
+        slug: source.slug,
+        title: source.title,
+        author: source.author,
+        sourceUrl: source.sourceUrl,
+        license: source.license
+      };
     } catch (e) {
-      console.error(`Failed to save/convert: ${s.id} ${s.title}:`, e.message);
+      console.error(`Failed to save/convert: ${source.id} ${source.title}:`, e.message);
+      return null;
+    }
+  } finally {
+    // Release semaphore after a delay to respect API limits
+    setTimeout(() => semaphore.release(), 200);
+  }
+}
+
+// Simple semaphore implementation for concurrency control
+class Semaphore {
+  constructor(maxConcurrent) {
+    this.maxConcurrent = maxConcurrent;
+    this.current = 0;
+    this.queue = [];
+  }
+
+  async acquire() {
+    return new Promise((resolve) => {
+      if (this.current < this.maxConcurrent) {
+        this.current++;
+        resolve();
+      } else {
+        this.queue.push(resolve);
+      }
+    });
+  }
+
+  release() {
+    this.current--;
+    if (this.queue.length > 0) {
+      this.current++;
+      const next = this.queue.shift();
+      next();
     }
   }
+}
+
+async function main() {
+  await ensureDir(STATIC_TEXTS_DIR);
+  const sources = await readSources();
+
+  // Create semaphore to limit concurrent requests (max 3 concurrent)
+  const semaphore = new Semaphore(3);
+
+  console.log(`Processing ${sources.length} sources in parallel...`);
+
+  // Process all sources in parallel
+  const promises = sources.map((source) => processSource(source, semaphore));
+  const results = await Promise.all(promises);
+
+  // Filter out failed results and build metadata
+  const metadata = results.filter((result) => result !== null);
 
   const metaPath = path.join(STATIC_TEXTS_DIR, 'metadata.json');
   await fs.writeFile(metaPath, JSON.stringify(metadata, null, 2), 'utf8');
-  console.log(`Wrote metadata: ${metaPath}`);
+  console.log(`Wrote metadata: ${metaPath} (${metadata.length}/${sources.length} successful)`);
 }
 
 main().catch((e) => {
