@@ -1,19 +1,20 @@
 <script lang="ts">
   import { browser } from '$app/environment';
-  import { 
-    shuffle,
-    type TypingTestState, 
-    createInitialTypingState, 
-    resetTypingState, 
-    processTypingInput,
-    calculateCPM,
-    isChineseChar
-  } from '$lib/utils';
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
+  import {
+      calculateCPM,
+      calculateTypingProgress,
+      createInitialTypingState,
+      getCharacterDisplayState,
+      processTypingInput,
+      resetTypingState,
+      shuffle,
+      type TypingTestState
+  } from '$lib/utils';
   
   // Debug mode state
   let debugMode = $state(true);
-  const debugSnippet: [string, number] = ["靜", 0];
+  const debugSnippet: [string, number] = ["靜靜，了一個", 0];
   const debugSource: SnippetSourceMeta = { 
     id: "debug", 
     slug: "debug", 
@@ -66,23 +67,8 @@
   let currentSnippet = $derived(debugMode ? debugSnippet : (snippets.length ? snippets[currentSnippetIndex] : undefined));
   let currentText = $derived(currentSnippet ? getText(currentSnippet) : '');
   let currentMeta = $derived(debugMode ? debugSource : (currentSnippet ? getMeta(currentSnippet) : undefined));
-  // Chinese-only typing helpers and derived state
-  let chineseIndices = $derived(currentText.split('').map((c, i) => (isChineseChar(c) ? i : -1)).filter((i) => i !== -1));
-  let filteredChineseText = $derived(chineseIndices.map((i) => currentText[i]).join(''));
-  let indexToChineseOrdinal = $derived(chineseIndices.reduce((m, idx, ord) => { m.set(idx, ord); return m; }, new Map<number, number>()));
-  let typedChineseOnly = $derived(testState.userInput.split('').filter(isChineseChar).join(''));
-  let matchedChinesePrefixLen = $derived.by(() => {
-    const typed = typedChineseOnly.split('');
-    let len = 0;
-    for (let i = 0; i < typed.length; i++) {
-      if (typed[i] === filteredChineseText[testState.completedChars + i]) len++;
-      else break;
-    }
-    return len;
-  });
-  let currentChinesePosition = $derived(testState.completedChars + matchedChinesePrefixLen);
-  let currentChineseCharIndex = $derived(chineseIndices[currentChinesePosition] ?? -1);
-  let currentChar = $derived(currentChineseCharIndex >= 0 ? currentText[currentChineseCharIndex] : '');
+  // Calculate typing progress using utility functions
+  let progress = $derived(calculateTypingProgress(currentText, testState.userInput));
   let cpm = $derived(calculateCPM(testState.completedChars, testState.startTime || 0, testState.endTime || undefined));
   
   // Debug logging for user input
@@ -108,7 +94,7 @@
   // Handle input changes on user interaction
   const onInput = () => {
     // Do not restrict user input; progression is based on filteredChineseText only
-    testState = processTypingInput(testState, filteredChineseText);
+    testState = processTypingInput(testState, progress.filteredChineseText);
   };
 
   // Load snippets on mount (browser only)
@@ -130,10 +116,10 @@
       <h3 class="text-lg font-medium text-gray-700 mb-2">練習文本：</h3>
       <div class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono" data-testid="typing-text-display">
         {#each currentText.split('') as char, i}
-          {@const isChinese = isChineseChar(char)}
-          {@const ord = isChinese ? indexToChineseOrdinal.get(i) ?? -1 : -1}
-          {@const isCompletedChinese = isChinese && ord < testState.completedChars + matchedChinesePrefixLen}
-          {@const isCurrentChinese = isChinese && ord === currentChinesePosition}
+          {@const charState = getCharacterDisplayState(i, char, progress)}
+          {@const isChinese = charState.isChinese}
+          {@const isCompletedChinese = charState.isCompletedChinese}
+          {@const isCurrentChinese = charState.isCurrentChinese}
           <span 
             class={`${
               isChinese
@@ -206,7 +192,7 @@
           </div>
           <div class="text-center">
             <div class="text-gray-600 text-xs mb-1">字數</div>
-            <div class="font-medium text-gray-800">{filteredChineseText.length} 字</div>
+            <div class="font-medium text-gray-800">{progress.filteredChineseText.length} 字</div>
           </div>
         </div>
       </div>

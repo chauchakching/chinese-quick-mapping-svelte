@@ -2,12 +2,13 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import {
   shuffle,
   calculateCPM,
-  calculateAccuracy,
   createInitialTypingState,
   resetTypingState,
   processTypingInput,
   type TypingTestState,
-  isChineseChar
+  isChineseChar,
+  calculateTypingProgress,
+  getCharacterDisplayState
 } from './utils';
 
 describe('shuffle', () => {
@@ -84,28 +85,6 @@ describe('calculateCPM', () => {
   });
 });
 
-describe('calculateAccuracy', () => {
-  it('should return 100% for no errors', () => {
-    const result = calculateAccuracy(10, 0);
-    expect(result).toBe(100);
-  });
-
-  it('should return 100% for no completed characters', () => {
-    const result = calculateAccuracy(0, 5);
-    expect(result).toBe(100);
-  });
-
-  it('should calculate accuracy correctly', () => {
-    const result = calculateAccuracy(8, 2); // 8 correct, 2 errors = 80%
-    expect(result).toBe(80);
-  });
-
-  it('should handle floating point accuracy', () => {
-    const result = calculateAccuracy(7, 3); // 7/(7+3) = 70%
-    expect(result).toBe(70);
-  });
-});
-
 describe('createInitialTypingState', () => {
   it('should create correct initial state', () => {
     const state = createInitialTypingState();
@@ -115,9 +94,7 @@ describe('createInitialTypingState', () => {
       completedChars: 0,
       startTime: null,
       endTime: null,
-      isCompleted: false,
-      totalErrors: 0,
-      lastErrorChar: ''
+      isCompleted: false
     });
   });
 });
@@ -156,14 +133,14 @@ describe('processTypingInput', () => {
   it('should complete immediately on last character', () => {
     const state = {
       ...initialState,
-      userInput: '本',
+      userInput: '測試文本', // Complete correct input
       completedChars: 3, // At last character position
       startTime: Date.now() - 1000
     };
     const result = processTypingInput(state, targetText);
 
     expect(result.completedChars).toBe(4);
-    expect(result.userInput).toBe('');
+    expect(result.userInput).toBe('測試文本'); // Input is preserved
     expect(result.isCompleted).toBe(true);
     expect(result.endTime).toBeTruthy();
   });
@@ -177,12 +154,11 @@ describe('processTypingInput', () => {
     };
     const result = processTypingInput(state, targetText);
 
-    expect(result.completedChars).toBe(1);
-    expect(result.userInput).toBe('試');
-    expect(result.lastErrorChar).toBe('');
+    expect(result.completedChars).toBe(2); // Both characters match
+    expect(result.userInput).toBe('測試'); // Input is preserved
   });
 
-  it('should wait for next character when only one correct char typed', () => {
+  it('should advance when correct character is typed', () => {
     const state = {
       ...initialState,
       userInput: '測',
@@ -191,11 +167,11 @@ describe('processTypingInput', () => {
     };
     const result = processTypingInput(state, targetText);
 
-    expect(result.completedChars).toBe(0); // Should not advance yet
+    expect(result.completedChars).toBe(1); // Should advance when correct
     expect(result.userInput).toBe('測');
   });
 
-  it('should track errors for wrong characters', () => {
+  it('should handle wrong characters without error tracking', () => {
     const state = {
       ...initialState,
       userInput: 'x',
@@ -204,24 +180,18 @@ describe('processTypingInput', () => {
     };
     const result = processTypingInput(state, targetText);
 
-    expect(result.totalErrors).toBe(1);
-    expect(result.lastErrorChar).toBe('x');
     expect(result.completedChars).toBe(0);
   });
 
-  it('should not double-count same error character', () => {
+  it('should handle repeated wrong characters without error tracking', () => {
     const state = {
       ...initialState,
       userInput: 'x',
       completedChars: 0,
-      totalErrors: 1,
-      lastErrorChar: 'x',
+
       startTime: Date.now() - 1000
     };
-    const result = processTypingInput(state, targetText);
-
-    expect(result.totalErrors).toBe(1); // Should not increment again
-    expect(result.lastErrorChar).toBe('x');
+    processTypingInput(state, targetText);
   });
 
   it('should handle empty input', () => {
@@ -239,29 +209,27 @@ describe('processTypingInput', () => {
     // Simulate successful typing progression through multiple characters
     let state: TypingTestState = { ...initialState, userInput: '測', startTime: Date.now() };
 
-    // Type first char - should wait
-    state = processTypingInput(state, targetText);
-    expect(state.completedChars).toBe(0);
-
-    // Type second char - should advance first char
-    state.userInput = '測試';
+    // Type first char - should advance immediately
     state = processTypingInput(state, targetText);
     expect(state.completedChars).toBe(1);
-    expect(state.userInput).toBe('試');
 
-    // Type third char correctly - should advance second char
-    state.userInput = '試文';
+    // Type second char - should advance to 2
+    state.userInput = '測試';
     state = processTypingInput(state, targetText);
     expect(state.completedChars).toBe(2);
-    expect(state.userInput).toBe('文');
+    expect(state.userInput).toBe('測試'); // Input preserved
+
+    // Type third char correctly - should advance to 3
+    state.userInput = '測試文';
+    state = processTypingInput(state, targetText);
+    expect(state.completedChars).toBe(3);
+    expect(state.userInput).toBe('測試文'); // Input preserved
 
     // Type wrong fourth char - should NOT advance (since 'x' doesn't match '本')
-    // Note: The logic only tracks errors for first char in input, not subsequent chars
-    state.userInput = '文x';
+    state.userInput = '測試文x';
     state = processTypingInput(state, targetText);
-    expect(state.completedChars).toBe(2); // Should not advance
-    expect(state.userInput).toBe('文x'); // Should keep both chars
-    expect(state.totalErrors).toBe(0); // No error counted since first char '文' is correct
+    expect(state.completedChars).toBe(3); // Should not advance past correct chars
+    expect(state.userInput).toBe('測試文x'); // Input preserved
   });
 
   it('should handle first character error tracking correctly', () => {
@@ -274,8 +242,6 @@ describe('processTypingInput', () => {
     };
     const result = processTypingInput(state, targetText);
 
-    expect(result.totalErrors).toBe(1);
-    expect(result.lastErrorChar).toBe('x');
     expect(result.completedChars).toBe(0);
     expect(result.userInput).toBe('x'); // Should keep wrong char for correction
   });
@@ -291,7 +257,7 @@ describe('processTypingInput', () => {
 
     expect(result.completedChars).toBe(1);
     expect(result.isCompleted).toBe(true);
-    expect(result.userInput).toBe('');
+    expect(result.userInput).toBe('測'); // Input is preserved
     expect(result.endTime).toBeTruthy();
   });
 });
@@ -316,5 +282,62 @@ describe('isChineseChar', () => {
     expect(isChineseChar('，')).toBe(false); // full-width comma
     expect(isChineseChar(',')).toBe(false);
     expect(isChineseChar(' ')).toBe(false);
+  });
+});
+
+describe('Typing progress calculation', () => {
+  it('calculateTypingProgress handles duplicate characters correctly', () => {
+    const snippetText = '靜靜，了一個';
+
+    // No input yet
+    let result = calculateTypingProgress(snippetText, '');
+    expect(result.filteredChineseText).toBe('靜靜了一個');
+    expect(result.matchedChinesePrefixLen).toBe(0);
+    expect(result.currentChinesePosition).toBe(0);
+
+    // Typed first "靜"
+    result = calculateTypingProgress(snippetText, '靜');
+    expect(result.matchedChinesePrefixLen).toBe(1);
+    expect(result.currentChinesePosition).toBe(1);
+
+    // Typed both "靜" characters
+    result = calculateTypingProgress(snippetText, '靜靜');
+    expect(result.matchedChinesePrefixLen).toBe(2);
+    expect(result.currentChinesePosition).toBe(2);
+
+    // Typed up to "了"
+    result = calculateTypingProgress(snippetText, '靜靜了');
+    expect(result.matchedChinesePrefixLen).toBe(3);
+    expect(result.currentChinesePosition).toBe(3);
+  });
+
+  it('getCharacterDisplayState highlights correctly with duplicates', () => {
+    const snippetText = '靜靜，了一個';
+    const progress = calculateTypingProgress(snippetText, '靜');
+
+    // First "靜" at index 0 - should be completed
+    const firstJing = getCharacterDisplayState(0, '靜', progress);
+    expect(firstJing.isCompletedChinese).toBe(true);
+    expect(firstJing.isCurrentChinese).toBe(false);
+
+    // Second "靜" at index 1 - should be current
+    const secondJing = getCharacterDisplayState(1, '靜', progress);
+    expect(secondJing.isCompletedChinese).toBe(false);
+    expect(secondJing.isCurrentChinese).toBe(true);
+
+    // "了" at index 3 - should be pending
+    const liao = getCharacterDisplayState(3, '了', progress);
+    expect(liao.isCompletedChinese).toBe(false);
+    expect(liao.isCurrentChinese).toBe(false);
+  });
+
+  it('calculateTypingProgress with mixed input handles non-Chinese correctly', () => {
+    const snippetText = '靜a靜';
+    const result = calculateTypingProgress(snippetText, '靜a靜b');
+
+    // Should only consider Chinese characters
+    expect(result.filteredChineseText).toBe('靜靜');
+    expect(result.typedChineseOnly).toBe('靜靜');
+    expect(result.matchedChinesePrefixLen).toBe(2);
   });
 });

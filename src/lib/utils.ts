@@ -100,10 +100,6 @@ export function calculateCPM(completedChars: number, startTime: number, endTime?
   return Math.round(completedChars / elapsedTimeMinutes);
 }
 
-export function calculateAccuracy(completedChars: number, totalErrors: number): number {
-  return completedChars > 0 ? (completedChars / (completedChars + totalErrors)) * 100 : 100;
-}
-
 /**
  * Character utilities
  */
@@ -121,8 +117,6 @@ export interface TypingTestState {
   startTime: number | null;
   endTime: number | null;
   isCompleted: boolean;
-  totalErrors: number;
-  lastErrorChar: string;
 }
 
 export function createInitialTypingState(): TypingTestState {
@@ -131,9 +125,7 @@ export function createInitialTypingState(): TypingTestState {
     completedChars: 0,
     startTime: null,
     endTime: null,
-    isCompleted: false,
-    totalErrors: 0,
-    lastErrorChar: ''
+    isCompleted: false
   };
 }
 
@@ -191,18 +183,6 @@ export function processTypingInput(state: TypingTestState, targetText: string): 
   // Update completed character count
   newState.completedChars = correctChars;
 
-  // Track errors when user types more characters than correct matches
-  if (typedChineseChars.length > correctChars) {
-    const wrongChar = typedChineseChars[correctChars];
-    if (wrongChar !== newState.lastErrorChar) {
-      newState.totalErrors += 1;
-      newState.lastErrorChar = wrongChar;
-    }
-  } else {
-    // Reset error tracking when user corrects/deletes wrong characters
-    newState.lastErrorChar = '';
-  }
-
   // Check for completion
   if (newState.completedChars === targetText.length) {
     newState.endTime = Date.now();
@@ -210,4 +190,81 @@ export function processTypingInput(state: TypingTestState, targetText: string): 
   }
 
   return newState;
+}
+
+/**
+ * Calculate typing progress and character states for highlighting
+ * @param snippetText - The full text snippet
+ * @param userInput - The current user input
+ * @returns Object with character indices, positions, and state information
+ */
+export function calculateTypingProgress(snippetText: string, userInput: string) {
+  // Get indices of Chinese characters in the original text
+  const chineseIndices = snippetText
+    .split('')
+    .map((c, i) => (isChineseChar(c) ? i : -1))
+    .filter((i) => i !== -1);
+
+  // Extract only Chinese characters from the snippet
+  const filteredChineseText = chineseIndices.map((i) => snippetText[i]).join('');
+
+  // Create mapping from text index to Chinese character ordinal position
+  const indexToChineseOrdinal = chineseIndices.reduce((map, idx, ord) => {
+    map.set(idx, ord);
+    return map;
+  }, new Map<number, number>());
+
+  // Extract only Chinese characters from user input
+  const typedChineseOnly = userInput.split('').filter(isChineseChar).join('');
+
+  // Count how many characters match from the beginning
+  let matchedChinesePrefixLen = 0;
+  const typed = typedChineseOnly.split('');
+  for (let i = 0; i < typed.length; i++) {
+    if (typed[i] === filteredChineseText[i]) {
+      matchedChinesePrefixLen++;
+    } else {
+      break;
+    }
+  }
+
+  const currentChinesePosition = matchedChinesePrefixLen;
+  const currentChineseCharIndex = chineseIndices[currentChinesePosition] ?? -1;
+  const currentChar = currentChineseCharIndex >= 0 ? snippetText[currentChineseCharIndex] : '';
+
+  return {
+    chineseIndices,
+    filteredChineseText,
+    indexToChineseOrdinal,
+    typedChineseOnly,
+    matchedChinesePrefixLen,
+    currentChinesePosition,
+    currentChineseCharIndex,
+    currentChar
+  };
+}
+
+/**
+ * Get the display state for a character at a specific index
+ * @param charIndex - Index of the character in the full text
+ * @param char - The character itself
+ * @param progress - Progress object from calculateTypingProgress
+ * @returns Object with character state information for highlighting
+ */
+export function getCharacterDisplayState(
+  charIndex: number,
+  char: string,
+  progress: ReturnType<typeof calculateTypingProgress>
+) {
+  const isChinese = isChineseChar(char);
+  const ord = isChinese ? (progress.indexToChineseOrdinal.get(charIndex) ?? -1) : -1;
+  const isCompletedChinese = isChinese && ord >= 0 && ord < progress.matchedChinesePrefixLen;
+  const isCurrentChinese = isChinese && ord === progress.matchedChinesePrefixLen;
+
+  return {
+    isChinese,
+    ord,
+    isCompletedChinese,
+    isCurrentChinese
+  };
 }
