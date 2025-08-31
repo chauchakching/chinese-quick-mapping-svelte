@@ -14,8 +14,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
-    "cypress": "cypress run",
-    "test:e2e": "cypress run"
+    "e2e": "cypress run",
+    "cy:open": "cypress open"
   },
   "devDependencies": {
     "@sveltejs/adapter-static": "^3.0.0",
