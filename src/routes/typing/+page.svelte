@@ -1,16 +1,51 @@
 <script lang="ts">
   import { browser } from '$app/environment';
   
-  // Sample text for typing practice
-  const practiceTexts = [
-    '中速成輸入法',
-    '練習打字可以提高輸入速度',
-    '中文打字需要熟悉字根和部首',
-    '每天練習十分鐘就能看到進步',
-    '速成碼通常比倉頡碼更容易學習'
-  ];
+
   
-  let currentTextIndex = $state(0);
+  // Snippets loaded from static/texts/snippets.json
+  let snippets: string[] = $state([]);
+  let remainingIndices: number[] = $state([]); // shuffled pool of indices; pop() to avoid reuse
+  let currentSnippetIndex = $state(0);
+
+  function shuffle(arr: number[]) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function initSnippetOrder() {
+    remainingIndices = Array.from({ length: snippets.length }, (_, i) => i);
+    shuffle(remainingIndices);
+  }
+
+  function pickNextSnippet() {
+    if (!snippets.length) return;
+    if (remainingIndices.length === 0) initSnippetOrder();
+    const idx = remainingIndices.pop();
+    if (idx !== undefined) currentSnippetIndex = idx;
+  }
+
+  async function loadSnippets() {
+    if (!browser || snippets.length) return;
+    try {
+      const res = await fetch('/texts/snippets.json', { cache: 'force-cache' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data?.snippets) && data.snippets.length > 0) {
+          snippets = data.snippets as string[];
+          initSnippetOrder();
+          pickNextSnippet();
+          resetTest();
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load snippets:', e);
+    }
+  }
+
+
   let userInput = $state('');
   let completedChars = $state(0);
   let startTime = $state<number | null>(null);
@@ -19,7 +54,7 @@
   let totalErrors = $state(0);
   let lastErrorChar = $state('');
   
-  let currentText = $derived(practiceTexts[currentTextIndex]);
+  let currentText = $derived(snippets.length ? snippets[currentSnippetIndex] : '');
   let currentChar = $derived(currentText[completedChars] || '');
   let accuracy = $derived(completedChars > 0 ? 
     ((completedChars) / (completedChars + totalErrors) * 100) : 100);
@@ -99,8 +134,10 @@
   };
   
   const nextText = () => {
-    currentTextIndex = (currentTextIndex + 1) % practiceTexts.length;
-    resetTest();
+    if (snippets.length) {
+      pickNextSnippet();
+      resetTest();
+    }
   };
   
   const resetTest = () => {
@@ -116,6 +153,13 @@
   // Watch for input changes
   $effect(() => {
     handleInput();
+  });
+
+  // Load snippets on mount (browser only)
+  $effect(() => {
+    if (browser && snippets.length === 0) {
+      void loadSnippets();
+    }
   });
 </script>
 

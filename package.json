@@ -9,6 +9,8 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --plugin-search-dir . --check . && eslint .",
     "format": "prettier --plugin-search-dir . --write .",
+    "fetch:texts": "node scripts/fetch_texts.mjs",
+    "build:snippets": "node scripts/build_snippets.mjs",
     "cypress": "cypress run",
     "test": "cypress run"
   },
