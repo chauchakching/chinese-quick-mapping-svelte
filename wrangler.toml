@@ -1,0 +1,17 @@
+name = "chinese-quick-mapping"
+compatibility_date = "2025-09-01"
+
+# Static assets configuration for SvelteKit build output
+[assets]
+directory = "./build"
+
+# Optional: Configure custom domain if you have one
+# routes = [
+#   { pattern = "example.com", custom_domain = true }
+# ]
+
+# Optional: Configure redirects for SPA routing
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200

@@ -15,7 +15,8 @@
     "test:run": "vitest run",
     "e2e": "cypress run",
     "cy:open": "cypress open",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy": "npm run build && npx wrangler deploy"
   },
   "devDependencies": {
     "@eslint/compat": "^1.2.5",
