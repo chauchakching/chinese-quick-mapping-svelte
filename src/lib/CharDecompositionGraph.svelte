@@ -21,7 +21,7 @@
         style={imageStyle ? imageStyle : ''}
         alt={`${char}-0`}
       />
-      {#each [0, 1, 2, 3, 4] as k}
+      {#each [0, 1, 2, 3, 4] as k (k)}
         <img
           src={`chars/${char}/part_${k + 1}.svg`}
           class="w-full h-full absolute top-0 left-0 mx-auto"
@@ -32,8 +32,10 @@
     </figure>
   </div>
   <div class="flex justify-center items-center">
-    {#each parts.split('') as c, i}
-      <div class="text-2xl mt-4 mx-2" style={`color: ${getColor(i)};${charStyle ? charStyle : ''}`}>{c}</div>
+    {#each parts.split('') as c, i (i)}
+      <div class="text-2xl mt-4 mx-2" style={`color: ${getColor(i)};${charStyle ? charStyle : ''}`}>
+        {c}
+      </div>
     {/each}
   </div>
 </div>

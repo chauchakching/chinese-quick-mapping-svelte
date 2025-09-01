@@ -2,32 +2,32 @@
   import { browser } from '$app/environment';
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
   import {
-      calculateCPM,
-      calculateTypingProgress,
-      createInitialTypingState,
-      getCharacterDisplayState,
-      processTypingInput,
-      resetTypingState,
-      shuffle,
-      chineseToParts,
-      type TypingTestState
+    calculateCPM,
+    calculateTypingProgress,
+    createInitialTypingState,
+    getCharacterDisplayState,
+    processTypingInput,
+    resetTypingState,
+    shuffle,
+    chineseToParts,
+    type TypingTestState
   } from '$lib/utils';
   import { modes } from '$lib/types';
   import quickMapping from '$lib/ChineseQuickMappingSmall.json';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
-  import charsWithImages from '$lib/chars-with-images.json';
+  // import charsWithImages from '$lib/chars-with-images.json';
 
-  const charsWithImagesSet = new Set(charsWithImages);
-  
+  // const charsWithImagesSet = new Set(charsWithImages);
+
   // Debug mode state
   let debugMode = $state(false);
-  const debugSnippet: [string, number] = ["眞靜靜，了一個", 0];
-  const debugSource: SnippetSourceMeta = { 
-    id: "debug", 
-    slug: "debug", 
-    title: "Debug Mode", 
-    author: "Debug", 
-    snippetCount: 1 
+  const debugSnippet: [string, number] = ['眞靜靜，了一個', 0];
+  const debugSource: SnippetSourceMeta = {
+    id: 'debug',
+    slug: 'debug',
+    title: 'Debug Mode',
+    author: 'Debug',
+    snippetCount: 1
   };
 
   // Image toggle state
@@ -68,30 +68,36 @@
     if (idx !== undefined) currentSnippetIndex = idx;
   }
 
-
   // Typing test state
   let testState: TypingTestState = $state(createInitialTypingState());
-  
+
   const getText = (s: [string, number]) => s[0];
   const getMeta = (s: [string, number]) => sources[s[1]];
-  let currentSnippet = $derived(debugMode ? debugSnippet : (snippets.length ? snippets[currentSnippetIndex] : undefined));
+  let currentSnippet = $derived(
+    debugMode ? debugSnippet : snippets.length ? snippets[currentSnippetIndex] : undefined
+  );
   let currentText = $derived(currentSnippet ? getText(currentSnippet) : '');
-  let currentMeta = $derived(debugMode ? debugSource : (currentSnippet ? getMeta(currentSnippet) : undefined));
+  let currentMeta = $derived(
+    debugMode ? debugSource : currentSnippet ? getMeta(currentSnippet) : undefined
+  );
   // Calculate typing progress using utility functions
   let progress = $derived(calculateTypingProgress(currentText, testState.userInput));
-  let cpm = $derived(calculateCPM(testState.completedChars, testState.startTime || 0, testState.endTime || undefined));
-  
+  let cpm = $derived(
+    calculateCPM(testState.completedChars, testState.startTime || 0, testState.endTime || undefined)
+  );
+
   // Current character decode logic
   let currentChar = $derived(progress.currentChar);
-  let currentCharHasImages = $derived(currentChar && charsWithImagesSet.has(currentChar));
-  let currentCharParts = $derived(currentChar ? chineseToParts(quickMapping, modes.cangjie, currentChar).parts : '');
-  
+
+  let currentCharParts = $derived(
+    currentChar ? chineseToParts(quickMapping, modes.cangjie, currentChar).parts : ''
+  );
+
   // Debug logging for user input
   $effect(() => {
     console.log('Current user input:', testState.userInput);
   });
 
-  
   const nextText = () => {
     if (debugMode) {
       // In debug mode, just reset the test state since there's only one snippet
@@ -101,11 +107,11 @@
       testState = resetTypingState();
     }
   };
-  
+
   const resetTest = () => {
     testState = resetTypingState();
   };
-  
+
   // Handle input changes on user interaction
   const onInput = () => {
     // Do not restrict user input; progression is based on filteredChineseText only
@@ -132,12 +138,10 @@
         <div class="flex items-center justify-end gap-3">
           <label class="inline-flex items-center cursor-pointer">
             <span class="mr-2 text-sm font-medium text-gray-900 dark:text-gray-300">拆解圖</span>
-            <input 
-              type="checkbox" 
-              bind:checked={showCharImages}
-              class="sr-only peer"
-            />
-            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+            <input type="checkbox" bind:checked={showCharImages} class="sr-only peer" />
+            <div
+              class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"
+            ></div>
           </label>
         </div>
       </div>
@@ -163,30 +167,39 @@
 
     <!-- Practice Text Display -->
     <div class="mb-2">
-      <div class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono" data-testid="typing-text-display">
-        {#each currentText.split('') as char, i}
+      <div
+        class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono"
+        data-testid="typing-text-display"
+      >
+        {#each currentText.split('') as char, i (i)}
           {@const charState = getCharacterDisplayState(i, char, progress)}
           {@const isChinese = charState.isChinese}
           {@const isCompletedChinese = charState.isCompletedChinese}
           {@const isCurrentChinese = charState.isCurrentChinese}
-          <span 
+          <span
             class={`${
               isChinese
-                ? (isCompletedChinese
-                    ? 'bg-green-50 text-green-700'
-                    : isCurrentChinese
-                      ? 'bg-blue-100 text-blue-700 animate-pulse'
-                      : 'text-gray-400 opacity-60')
+                ? isCompletedChinese
+                  ? 'bg-green-50 text-green-700'
+                  : isCurrentChinese
+                    ? 'bg-blue-100 text-blue-700 animate-pulse'
+                    : 'text-gray-400 opacity-60'
                 : 'text-gray-400 opacity-60'
             }`}
             data-testid="typing-char"
             data-char-index={i}
-            data-char-state={isChinese ? (isCompletedChinese ? 'completed' : isCurrentChinese ? 'current' : 'pending') : 'neutral'}
-          >{char}</span>
+            data-char-state={isChinese
+              ? isCompletedChinese
+                ? 'completed'
+                : isCurrentChinese
+                  ? 'current'
+                  : 'pending'
+              : 'neutral'}>{char}</span
+          >
         {/each}
       </div>
     </div>
-    
+
     <!-- Book Source (only when completed) -->
     {#if testState.isCompleted && currentMeta?.title}
       <div class="mb-4 text-center">
@@ -195,7 +208,7 @@
         </div>
       </div>
     {/if}
-    
+
     <!-- User Input Area (only when not completed) -->
     {#if !testState.isCompleted}
       <div class="mb-4">
@@ -213,7 +226,7 @@
         />
       </div>
     {/if}
-    
+
     <!-- Statistics (only during typing) -->
     {#if !testState.isCompleted}
       <div class="flex justify-center mb-4">
@@ -222,10 +235,13 @@
         </div>
       </div>
     {/if}
-    
+
     <!-- Completion Message -->
     {#if testState.isCompleted}
-      <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4" data-testid="completion-message">
+      <div
+        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4"
+        data-testid="completion-message"
+      >
         <div class="flex items-center">
           <img src="/icons/check.svg" alt="完成" class="h-5 w-5 mr-2" />
           <span class="font-medium">完成！</span>
@@ -237,7 +253,11 @@
           </div>
           <div class="text-center">
             <div class="text-gray-600 text-xs mb-1">用時</div>
-            <div class="font-medium text-gray-800">{testState.startTime && testState.endTime ? Math.round((testState.endTime - testState.startTime) / 1000) : 0} 秒</div>
+            <div class="font-medium text-gray-800">
+              {testState.startTime && testState.endTime
+                ? Math.round((testState.endTime - testState.startTime) / 1000)
+                : 0} 秒
+            </div>
           </div>
           <div class="text-center">
             <div class="text-gray-600 text-xs mb-1">字數</div>
@@ -246,7 +266,7 @@
         </div>
       </div>
     {/if}
-    
+
     <!-- Control Buttons -->
     <div class="flex flex-row gap-3 justify-center">
       <button
@@ -257,16 +277,20 @@
         <img src="/icons/refresh.svg" alt="重置" class="h-4 w-4 mr-2" style="filter: invert(1);" />
         重新開始
       </button>
-      
+
       <button
         onclick={nextText}
         class="flex items-center justify-center px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
         data-testid="next-text-button"
       >
-        <img src="/icons/arrow-right.svg" alt="下一個" class="h-4 w-4 mr-2" style="filter: invert(1);" />
+        <img
+          src="/icons/arrow-right.svg"
+          alt="下一個"
+          class="h-4 w-4 mr-2"
+          style="filter: invert(1);"
+        />
         {debugMode ? '重新開始' : '下一個文本'}
       </button>
     </div>
-
   </div>
 </section>

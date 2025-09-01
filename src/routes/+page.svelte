@@ -17,7 +17,7 @@
   const defaultText =
     '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
 
-  let copyResultMessage: any = $state();
+  let copyResultMessage: { open: () => void } | undefined = $state();
 
   const setQueryParam = (key: string, value: string) => {
     const url = new URL(window.location.href);
@@ -28,7 +28,7 @@
   // Text to convert
   // Initialize with defaultText, will update with query param in browser
   let userInputText = $state(defaultText);
-  
+
   // On client-side, check for query param
   run(() => {
     if (browser) {
@@ -47,7 +47,7 @@
   });
 
   // dom
-  let textarea: any = $state();
+  let textarea: HTMLTextAreaElement | undefined = $state();
 
   // auto select text when init
   run(() => {
@@ -60,14 +60,16 @@
   // 速成/倉頡
   let mode: Mode = $state(modes.quick);
 
-  let charBoxItems = $derived(userInputText.split('').map((char) => {
-    const { ch, parts } = chineseToParts(quickMapping, mode, char);
-    return { ch, parts };
-  }));
+  let charBoxItems = $derived(
+    userInputText.split('').map((char) => {
+      const { ch, parts } = chineseToParts(quickMapping, mode, char);
+      return { ch, parts };
+    })
+  );
 
-  let inputHistory: string[] = $state(browser
-    ? JSON.parse(localStorage.getItem('inputHistory') || '[]')
-    : []);
+  let inputHistory: string[] = $state(
+    browser ? JSON.parse(localStorage.getItem('inputHistory') || '[]') : []
+  );
 
   // update input history on user input change (ignore default text)
   let inputChanged = $derived(userInputText !== defaultText);
@@ -114,8 +116,8 @@
       <div class="flex flex-row justify-between mb-4">
         <div class="flex flex-row">
           <button
-            class={`flex items-center text-center block border rounded py-1 px-3 hover:bg-gray-200 shadow rounded bg-white`}
-            onclick={(e) => {
+            class="flex items-center text-center block border rounded py-1 px-3 hover:bg-gray-200 shadow rounded bg-white"
+            onclick={() => {
               userInputText = '';
               textarea.focus();
             }}
@@ -127,8 +129,8 @@
         <div class="flex flex-row">
           {#if typeof navigator !== 'undefined' && !!navigator?.clipboard?.writeText}
             <button
-              class={`text-center block border rounded mr-2 py-1 px-2 hover:bg-gray-200 shadow rounded bg-white`}
-              onclick={(e) => {
+              class="text-center block border rounded mr-2 py-1 px-2 hover:bg-gray-200 shadow rounded bg-white"
+              onclick={() => {
                 navigator.clipboard.writeText(window.location.href);
                 copyResultMessage.open();
               }}
@@ -139,7 +141,9 @@
           <div class="flex-0 w-20 -mr-4">
             <button
               class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-l ${
-                mode === modes.quick ? 'text-white bg-slate-500 hover:bg-slate-700' : 'bg-white hover:bg-gray-200'
+                mode === modes.quick
+                  ? 'text-white bg-slate-500 hover:bg-slate-700'
+                  : 'bg-white hover:bg-gray-200'
               }`}
               onclick={() => (mode = modes.quick)}
             >
@@ -149,7 +153,9 @@
           <div class="flex-0 w-20 -mr-3">
             <button
               class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-r ${
-                mode === modes.cangjie ? 'text-white bg-slate-500 hover:bg-slate-700' : 'bg-white hover:bg-gray-200'
+                mode === modes.cangjie
+                  ? 'text-white bg-slate-500 hover:bg-slate-700'
+                  : 'bg-white hover:bg-gray-200'
               }`}
               onclick={() => (mode = modes.cangjie)}
             >
@@ -169,13 +175,13 @@
             class="w-full outline-none resize-none text-lg"
             bind:value={userInputText}
             bind:this={textarea}
-></textarea>
+          ></textarea>
         </div>
         <div
           class="flex-1 px-2 pt-3 pb-1 border-l border-r border-b sm:border-0 rounded-b sm:rounded-t sm:ml-4 flex content-start flex-wrap bg-white shadow-md relative"
           data-testid="char-box-container"
         >
-          {#each charBoxItems as { ch, parts }}
+          {#each charBoxItems as { ch, parts }, i (i)}
             {@const clickable = charsWithImagesSet.has(ch)}
             <button
               class={`flex flex-col items-center mx-1 mb-2 px-2.5 py-1.5 ${

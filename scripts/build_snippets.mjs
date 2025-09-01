@@ -26,7 +26,7 @@ function normalizeWhitespace(text) {
 }
 
 function keepMostlyHan(text) {
-  const allowed = new RegExp(`[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF${CH_PUNCT}\s]`, 'u');
+  const allowed = new RegExp(`[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF${CH_PUNCT}\\s]`, 'u');
   const filtered = Array.from(text)
     .filter((ch) => allowed.test(ch))
     .join('');
@@ -150,7 +150,7 @@ async function build() {
 
   // Compute per-source counts
   const sourceCounts = Array.from({ length: sources.length }, () => 0);
-  for (const [_, idx] of unique) {
+  for (const [, idx] of unique) {
     if (Number.isInteger(idx) && idx >= 0 && idx < sourceCounts.length) {
       sourceCounts[idx] += 1;
     }

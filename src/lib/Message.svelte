@@ -7,8 +7,6 @@
   const MESSAGE_TOP_OFFSET = 25;
   const MESSAGE_DURATION_MILLISECOND = 2000;
 
-
-
   const getY = () =>
     tweened(0, {
       duration: 250,
@@ -16,7 +14,7 @@
     });
 
   type Message = HTMLElement & {
-    open: Function;
+    open: () => void;
   };
 
   export interface Props {

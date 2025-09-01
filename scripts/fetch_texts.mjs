@@ -260,14 +260,14 @@ async function processSource(source, semaphore) {
         plain = await fetchWikisourcePlainTextByTitle(cand);
         usedTitle = cand;
         break;
-      } catch (e1) {
+      } catch {
         // Try parse (HTML -> plain)
         try {
           const html = await fetchWikisourceHtmlByTitle(cand);
           plain = htmlToPlain(html);
           usedTitle = cand;
           break;
-        } catch (e2) {
+        } catch {
           // continue
         }
       }

@@ -29,7 +29,7 @@ describe('sanity test', () => {
           origin: window.location.origin
         }
       });
-    } catch (error) {
+    } catch {
       cy.log('Failed to grant clipboard permissions, skipping clipboard test');
     }
 
