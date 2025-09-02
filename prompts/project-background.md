@@ -30,7 +30,9 @@ Use this at the start of every conversation to stay aligned with the project’s
   - `ranks.json`
   - `src/lib/chars-with-images.json`
 - **Character SVGs**:
-  - `static/chars/*.svg` (~39k files)
+  - `static/chars/*/combined.svg` (~5.7k files) - Combined SVGs with named `<g id="part-N">` groups for individual part coloring via CSS filters
+  - Structure: Each character has one `combined.svg` containing all parts (part-0 through part-5) as separate groups
+  - Reduced from ~39k files (7 files per character) via combined SVG approach
 - **Typing Practice Texts**:
   - `static/texts/*.txt` (7 source texts)
   - `static/texts/snippets.json` (normalized: sources[] with per-source snippetCount, and snippets as `[text, sourceIndex]` tuples; 28–68 chars)
@@ -49,6 +51,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 │  └─ project-background.md     # This document
 ├─ scripts/                     # Data generation and scraping scripts
 │  ├─ build_snippets.mjs
+│  ├─ create-combined-svgs.js   # Combines part SVGs into single files with named groups
 │  ├─ fetch_texts.mjs
 │  ├─ generate-small-mapping.js
 │  ├─ get-chars-with-chinese-images.js
@@ -95,7 +98,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 - **Components**: `src/lib/CharDecompositionGraph.svelte`, `src/lib/Message.svelte`, `src/lib/Modal.svelte`
 - **Logic/Types**: `src/lib/keyToQuickUnit.ts`, `src/lib/types.ts`, `src/lib/utils.ts`
 - **PWA**: `static/service-worker.js`, `static/manifest.webmanifest`
-- **Scripts**: `scripts/generate-small-mapping.js`, `scripts/get-chars-with-chinese-images.js`, `scripts/scrap-*`, `scripts/fetch_texts.mjs`, `scripts/build_snippets.mjs`
+- **Scripts**: `scripts/generate-small-mapping.js`, `scripts/get-chars-with-chinese-images.js`, `scripts/create-combined-svgs.js`, `scripts/scrap-*`, `scripts/fetch_texts.mjs`, `scripts/build_snippets.mjs`
 - **Tests**: `cypress/e2e/sanity.cy.ts`
 
 ### Conventions and constraints
@@ -103,7 +106,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 - **Traditional-first**: All lookups assume Traditional Chinese characters.
 - **Terminology**: 速成 = Quick; 倉頡 = Cangjie; “character parts” are components used by these methods.
 - **Mobile-first**: ~90% of traffic is from mobile; prioritize responsive UI, touch-friendly interactions, and fast loads on low-end devices.
-- **Performance**: Prefer static asset fetching and caching; avoid heavy runtime computation or importing large asset sets at build time.
+- **Performance**: Prefer static asset fetching and caching; avoid heavy runtime computation or importing large asset sets at build time. Uses combined SVGs (5.7k files) instead of separate part files.
 - **Offline**: Keep features functional with cached assets; mind service worker behavior.
 - **Client-only**: No server backend assumed.
 
