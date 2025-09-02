@@ -223,7 +223,6 @@
     visible={modalVisible}
     onClose={() => {
       modalVisible = false;
-      modalChar = ''; // Reset character to prevent showing old images
     }}
   >
     <div class="w-full my-12 mx-12">

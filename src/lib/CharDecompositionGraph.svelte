@@ -17,6 +17,10 @@
   async function loadCombinedSVG(character: string) {
     if (!svgContainer) return;
 
+    // Clear previous content immediately to prevent flash
+    svgContainer.innerHTML = '';
+    svgElement = null;
+
     try {
       const response = await fetch(`chars/${character}/combined.svg`);
       if (!response.ok) {
