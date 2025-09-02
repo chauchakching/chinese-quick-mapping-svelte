@@ -1,18 +1,8 @@
 # wrangler.toml
 name = 'chinese-quick-mapping-svelte'
-compatibility_date = "2025-09-01"
+compatibility_date = "2025-01-01"
 
 # Static assets configuration for SvelteKit build output
 [assets]
 directory = "./build"
-
-# Optional: Configure custom domain if you have one
-# routes = [
-#   { pattern = "example.com", custom_domain = true }
-# ]
-
-# Optional: Configure redirects for SPA routing
-[[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
+not_found_handling = "single-page-application"
