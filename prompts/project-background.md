@@ -129,5 +129,5 @@ Use this at the start of every conversation to stay aligned with the project’s
 - Be concise and technical. Reference concrete file paths like `src/lib/...`.
 - Prefer minimal, safe edits with clear diffs. Verify against mapping JSONs when in doubt.
 - Consider offline behavior and caching whenever changing asset paths or fetch logic.
-- **Dev server**: During conversations, assume the local SvelteKit dev server is running (usually `http://localhost:3000`). Verify by checking port 3000 if needed.
+- **Dev server**: During conversations, ALWAYS assume the local SvelteKit dev server is running.
 - Respect folder structure: place shared helpers in `src/lib/utils.ts` (and tests in `src/lib/utils.test.ts`), shared types in `src/lib/types.ts`, Quick/Cangjie unit logic in `src/lib/keyToQuickUnit.ts`, and page-specific logic under `src/routes/**`. Do not duplicate utilities inside `routes/`.
