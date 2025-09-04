@@ -162,6 +162,15 @@
     testState = processTypingInput(testState, progress.filteredChineseText);
   };
 
+  // Handle input focus - move cursor to end for better mobile UX
+  const onFocus = () => {
+    if (inputElement && testState.userInput.length > 0) {
+      // Set cursor position to end without selecting text
+      inputElement.selectionStart = inputElement.value.length;
+      inputElement.selectionEnd = inputElement.value.length;
+    }
+  };
+
   // Load snippets on mount (browser only)
   $effect(() => {
     if (browser && snippets.length === 0) {
@@ -263,6 +272,7 @@
           type="text"
           bind:value={testState.userInput}
           oninput={onInput}
+          onfocus={onFocus}
           placeholder="開始打字..."
           class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg font-mono text-center"
           autocomplete="off"

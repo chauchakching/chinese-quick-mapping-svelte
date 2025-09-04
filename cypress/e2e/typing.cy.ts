@@ -110,6 +110,23 @@ describe('Typing Practice Page', () => {
 
               // Verify input field is NOT automatically focused when clicked during typing
               cy.get('[data-testid="typing-input"]').should('not.be.focused');
+
+              // === 7. Test Cursor Position on Focus ===
+              // Type some text and then click to focus again
+              cy.get('[data-testid="typing-input"]').focus().clear().type('hello world');
+
+              // Blur the input by clicking elsewhere
+              cy.get('body').click();
+
+              // Focus the input again by clicking on it
+              cy.get('[data-testid="typing-input"]').focus();
+
+              // Verify cursor is at the end of the text
+              cy.get('[data-testid="typing-input"]').then(($input) => {
+                const input = $input[0] as HTMLInputElement;
+                expect(input.selectionStart).to.equal(input.value.length);
+                expect(input.selectionEnd).to.equal(input.value.length);
+              });
             }
           });
       }
