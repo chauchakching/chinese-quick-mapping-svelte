@@ -12,7 +12,7 @@ async function run() {
   const rankedWords = JSON.parse(await fs.readFile(path.join(__dirname, '../ranks.json'), 'utf-8'));
 
   const allMappings = JSON.parse(
-    await fs.readFile(path.join(__dirname, '../static/assets/ChineseQuickMapping.json'), 'utf-8')
+    await fs.readFile(path.join(__dirname, '../static/assets/cj.json'), 'utf-8')
   );
 
   const additionalCommonChars = JSON.parse(
@@ -24,10 +24,7 @@ async function run() {
     R.mergeAll
   )([...rankedWords, ...R.take(200)(additionalCommonChars)]);
 
-  fs.writeFile(
-    path.join(__dirname, '../src/lib/ChineseQuickMappingSmall.json'),
-    JSON.stringify(smallerMapping)
-  );
+  fs.writeFile(path.join(__dirname, '../src/lib/cj_small.json'), JSON.stringify(smallerMapping));
 }
 
 run();

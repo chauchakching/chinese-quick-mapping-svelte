@@ -13,7 +13,7 @@
     type TypingTestState
   } from '$lib/utils';
   import { modes } from '$lib/types';
-  import quickMapping from '$lib/ChineseQuickMappingSmall.json';
+  import quickMapping from '$lib/cj_small.json';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
   // import charsWithImages from '$lib/chars-with-images.json';
 

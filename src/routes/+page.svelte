@@ -6,7 +6,7 @@
 
   import { modes, type Mode } from '$lib/types';
   import { chineseToParts, updateInputHistory } from '$lib/utils';
-  import quickMapping from '$lib/ChineseQuickMappingSmall.json';
+  import quickMapping from '$lib/cj_small.json';
   import Modal from '$lib/Modal.svelte';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
   import Message from '$lib/Message.svelte';
