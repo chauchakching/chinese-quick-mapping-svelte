@@ -195,7 +195,7 @@
     <div class="mb-2">
       <div
         bind:this={textDisplayElement}
-        class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono overflow-y-auto h-16 md:h-22"
+        class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono overflow-y-auto h-16 md:h-auto"
         style="line-height: 1.625;"
         data-testid="typing-text-display"
       >
