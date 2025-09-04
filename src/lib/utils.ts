@@ -77,6 +77,27 @@ const colorAndFilters = [
 ];
 
 /**
+ * Apply color to SVG part group using direct fill (universal browser support)
+ * Simpler and more reliable than CSS filters, works on all browsers including Safari
+ */
+export const applyPartColor = (group: HTMLElement, colorIndex: number) => {
+  if (colorIndex < 0 || colorIndex >= colorAndFilters.length) return;
+
+  const color = getColor(colorIndex);
+
+  // Clear any existing filters and apply fill directly
+  group.style.filter = '';
+  group.style.transform = '';
+  group.style.fill = color;
+
+  // Apply fill to all path elements within the group for maximum compatibility
+  const paths = group.querySelectorAll('path');
+  paths.forEach((path) => {
+    (path as unknown as HTMLElement).style.fill = color;
+  });
+};
+
+/**
  * Array utilities
  */
 export function shuffle<T>(arr: T[]): void {

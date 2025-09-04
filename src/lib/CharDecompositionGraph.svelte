@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getColor, getColorFilter } from './utils';
+  import { getColor, applyPartColor } from './utils';
 
   export interface Props {
     char: string;
@@ -53,14 +53,14 @@
         if (partNumber === 0) {
           // Part 0 is the background - low opacity
           htmlGroup.style.opacity = '0.1';
+          htmlGroup.style.filter = '';
+          htmlGroup.style.fill = '';
         } else {
-          // Parts 1-5 get color filters
+          // Parts 1-5 get color application using direct fill (universal support)
           const colorIndex = partNumber - 1; // Convert to 0-based index for color array
           if (colorIndex < 5) {
-            // Apply the CSS filter for this color
-            const filter = getColorFilter(colorIndex);
-            const filterValue = filter.replace('filter: ', '').replace(';', '');
-            htmlGroup.style.filter = filterValue;
+            // Apply color using universally-supported fill method
+            applyPartColor(htmlGroup, colorIndex);
           }
         }
       });
