@@ -15,9 +15,6 @@
   import { modes } from '$lib/types';
   import { quickMapping } from '$lib/mappingLoader';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
-  // import charsWithImages from '$lib/chars-with-images.json';
-
-  // const charsWithImagesSet = new Set(charsWithImages);
 
   // Debug mode state
   let debugMode = $state(false);
