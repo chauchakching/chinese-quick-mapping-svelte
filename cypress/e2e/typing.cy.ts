@@ -88,6 +88,28 @@ describe('Typing Practice Page', () => {
               cy.get('[data-testid="typing-char"]')
                 .first()
                 .should('have.attr', 'data-char-state', 'current');
+
+              // Verify input field is automatically focused
+              cy.get('[data-testid="typing-input"]').should('be.focused');
+
+              // === 5. Test Reset Button Auto-Focus ===
+              // Type a character and then reset
+              cy.get('[data-testid="typing-input"]').type('a');
+              cy.get('[data-testid="reset-button"]').click();
+              cy.wait(200);
+
+              // Verify input field is automatically focused after reset
+              cy.get('[data-testid="typing-input"]').should('be.focused');
+
+              // === 6. Test Next Text Button Does NOT Auto-Focus During Typing ===
+              // Type a character to start typing, then click next text
+              cy.get('[data-testid="typing-input"]').clear().type('a');
+              cy.get('body').click(); // Click elsewhere to remove focus
+              cy.get('[data-testid="next-text-button"]').click();
+              cy.wait(200);
+
+              // Verify input field is NOT automatically focused when clicked during typing
+              cy.get('[data-testid="typing-input"]').should('not.be.focused');
             }
           });
       }

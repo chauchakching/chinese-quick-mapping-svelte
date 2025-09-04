@@ -93,6 +93,9 @@
   // Auto-scroll functionality
   let textDisplayElement: HTMLElement;
 
+  // Input field reference for auto-focus
+  let inputElement = $state<HTMLInputElement | undefined>(undefined);
+
   // Auto-scroll to current character when it changes
   $effect(() => {
     if (!textDisplayElement || !currentText || progress.currentChineseCharIndex < 0) return;
@@ -122,6 +125,8 @@
   });
 
   const nextText = () => {
+    const wasCompleted = testState.isCompleted;
+
     if (debugMode) {
       // In debug mode, just reset the test state since there's only one snippet
       testState = resetTypingState();
@@ -129,10 +134,26 @@
       pickNextSnippet();
       testState = resetTypingState();
     }
+
+    // Auto-focus the input field only if the user clicked after completing a test
+    if (wasCompleted) {
+      setTimeout(() => {
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }, 100);
+    }
   };
 
   const resetTest = () => {
     testState = resetTypingState();
+
+    // Auto-focus the input field after a short delay to ensure the UI has updated
+    setTimeout(() => {
+      if (inputElement) {
+        inputElement.focus();
+      }
+    }, 100);
   };
 
   // Handle input changes on user interaction
@@ -238,6 +259,7 @@
     {#if !testState.isCompleted}
       <div class="mb-4">
         <input
+          bind:this={inputElement}
           type="text"
           bind:value={testState.userInput}
           oninput={onInput}
