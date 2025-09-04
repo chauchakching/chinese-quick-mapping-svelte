@@ -165,9 +165,14 @@
   // Handle input focus - move cursor to end for better mobile UX
   const onFocus = () => {
     if (inputElement && testState.userInput.length > 0) {
-      // Set cursor position to end without selecting text
-      inputElement.selectionStart = inputElement.value.length;
-      inputElement.selectionEnd = inputElement.value.length;
+      // Small delay to ensure focus is fully established
+      setTimeout(() => {
+        if (inputElement) {
+          // Set cursor position to end without selecting text
+          inputElement.selectionStart = inputElement.value.length;
+          inputElement.selectionEnd = inputElement.value.length;
+        }
+      }, 10);
     }
   };
 
