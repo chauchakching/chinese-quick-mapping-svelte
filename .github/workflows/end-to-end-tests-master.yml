@@ -1,4 +1,4 @@
-name: Deploy
+name: End-to-end tests (master)
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - master
 
 jobs:
-  deploy:
-    name: deploy
+  test:
+    name: test
     runs-on: ubuntu-latest
 
     steps:
@@ -24,9 +24,3 @@ jobs:
           build: npm run build
           start: npm run preview -- --port 3000
           browser: chrome
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@4.1.7
-        with:
-          branch: gh-pages
-          folder: build
