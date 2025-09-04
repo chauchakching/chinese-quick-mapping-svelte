@@ -2,6 +2,10 @@
 name = 'chinese-quick-mapping-svelte'
 compatibility_date = "2025-01-01"
 
+# Build command to run before deployment
+[build]
+command = "npm run build"
+
 # Static assets configuration for SvelteKit build output
 [assets]
 directory = "./build"
