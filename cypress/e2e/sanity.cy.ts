@@ -13,6 +13,7 @@ describe('sanity test', () => {
       }
       return true;
     });
+    cy.viewport('iphone-6');
   });
 
   it('should work', () => {

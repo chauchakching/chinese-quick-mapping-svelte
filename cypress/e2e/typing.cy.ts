@@ -11,6 +11,7 @@ describe('Typing Practice Page', () => {
       return true;
     });
 
+    cy.viewport('iphone-6');
     cy.visit('http://localhost:3000/typing');
   });
 
