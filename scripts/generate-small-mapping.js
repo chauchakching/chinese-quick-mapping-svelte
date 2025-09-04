@@ -24,7 +24,12 @@ async function run() {
     R.mergeAll
   )([...rankedWords, ...R.take(200)(additionalCommonChars)]);
 
-  fs.writeFile(path.join(__dirname, '../src/lib/cj_small.json'), JSON.stringify(smallerMapping));
+  // Convert to line-separated format (char code per line)
+  const lineSeparated = Object.entries(smallerMapping)
+    .map(([char, code]) => `${char} ${code}`)
+    .join('\n');
+
+  fs.writeFile(path.join(__dirname, '../src/lib/cj_small.txt'), lineSeparated);
 }
 
 run();
