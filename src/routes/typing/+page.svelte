@@ -93,6 +93,32 @@
     currentChar ? chineseToParts(quickMapping, modes.cangjie, currentChar).parts : ''
   );
 
+  // Auto-scroll functionality
+  let textDisplayElement: HTMLElement;
+
+  // Auto-scroll to current character when it changes
+  $effect(() => {
+    if (!textDisplayElement || !currentText || progress.currentChineseCharIndex < 0) return;
+
+    const currentCharElement = textDisplayElement.querySelector(
+      `[data-char-index="${progress.currentChineseCharIndex}"]`
+    ) as HTMLElement;
+    if (!currentCharElement) return;
+
+    // Calculate if we need to scroll
+    const containerRect = textDisplayElement.getBoundingClientRect();
+    const charRect = currentCharElement.getBoundingClientRect();
+
+    // If character is outside the visible area, scroll to it
+    if (charRect.top < containerRect.top || charRect.bottom > containerRect.bottom) {
+      currentCharElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      });
+    }
+  });
+
   // Debug logging for user input
   $effect(() => {
     console.log('Current user input:', testState.userInput);
@@ -168,7 +194,9 @@
     <!-- Practice Text Display -->
     <div class="mb-2">
       <div
-        class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono"
+        bind:this={textDisplayElement}
+        class="bg-gray-50 p-4 rounded-lg border text-lg leading-relaxed font-mono overflow-y-auto h-16 md:h-22"
+        style="line-height: 1.625;"
         data-testid="typing-text-display"
       >
         {#each currentText.split('') as char, i (i)}
