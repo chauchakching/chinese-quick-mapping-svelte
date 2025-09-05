@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getColor, applyPartColor } from './utils';
+  import { getColor, applyPartColor, fetchCharacterSvg } from './utils';
 
   export interface Props {
     char: string;
@@ -22,7 +22,7 @@
     svgElement = null;
 
     try {
-      const response = await fetch(`chars/${character}/combined.svg`);
+      const response = await fetchCharacterSvg(character);
       if (!response.ok) {
         console.error(`Failed to load combined SVG for ${character}`);
         svgContainer.innerHTML = '<p class="text-gray-500 text-center">Combined SVG not found</p>';

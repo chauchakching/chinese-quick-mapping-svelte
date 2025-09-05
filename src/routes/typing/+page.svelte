@@ -10,6 +10,7 @@
     resetTypingState,
     shuffle,
     chineseToParts,
+    preloadCharacterImage,
     type TypingTestState
   } from '$lib/utils';
   import { modes } from '$lib/types';
@@ -86,6 +87,9 @@
   // Current character decode logic
   let currentChar = $derived(progress.currentChar);
 
+  // Next character for preloading
+  let nextChar = $derived(progress.filteredChineseText[progress.currentChinesePosition + 1]);
+
   let currentCharParts = $derived(
     currentChar ? chineseToParts(quickMapping, modes.cangjie, currentChar).parts : ''
   );
@@ -122,6 +126,13 @@
   // Debug logging for user input
   $effect(() => {
     console.log('Current user input:', testState.userInput);
+  });
+
+  // Preload next character image when it changes
+  $effect(() => {
+    if (nextChar && browser) {
+      preloadCharacterImage(nextChar);
+    }
   });
 
   const nextText = () => {

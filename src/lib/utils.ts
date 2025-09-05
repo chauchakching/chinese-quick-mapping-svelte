@@ -289,3 +289,30 @@ export function getCharacterDisplayState(
     isCurrentChinese
   };
 }
+
+export async function fetchCharacterSvg(char: string): Promise<Response> {
+  return await fetch(`chars/${char}/combined.svg`);
+}
+
+/**
+ * Preloads a character's combined SVG by fetching it.
+ * The service worker will cache it for later use.
+ */
+export async function preloadCharacterImage(char: string): Promise<void> {
+  if (!char) return;
+
+  try {
+    await fetchCharacterSvg(char);
+    // No need to process response - just warming the cache
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {
+    // Silent fail - preloading shouldn't break the app
+  }
+}
+
+/**
+ * Preloads multiple character images
+ */
+export async function preloadCharacterImages(chars: string[]): Promise<void> {
+  await Promise.allSettled(chars.map((char) => preloadCharacterImage(char)));
+}
