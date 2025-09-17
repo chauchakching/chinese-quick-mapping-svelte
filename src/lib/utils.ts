@@ -34,6 +34,31 @@ export const updateInputHistory = (newContent: string, inputHistory: string[]) =
   ).slice(0, 10);
 };
 
+/**
+ * Generate a simple hash for a string (for snippet identification)
+ * Using a simple djb2 hash algorithm for browser compatibility
+ */
+export const simpleHash = (str: string): string => {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) + hash + str.charCodeAt(i)) & 0xffffffff;
+  }
+  // Convert to positive number and base36 for shorter URL-friendly string
+  return Math.abs(hash).toString(36);
+};
+
+/**
+ * Find snippet index by its hash
+ */
+export const findSnippetByHash = (snippets: [string, number][], hash: string): number => {
+  for (let i = 0; i < snippets.length; i++) {
+    if (simpleHash(snippets[i][0]) === hash) {
+      return i;
+    }
+  }
+  return -1;
+};
+
 export const getColor = (i: number) => {
   return colorAndFilters[i][0];
 };

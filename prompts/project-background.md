@@ -11,7 +11,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 
 - **Lookup**: Search Traditional Chinese characters to show 速成/倉頡 codes.
 - **Decomposition**: Visualize character components/parts and their mapping to keys.
-- **Typing Practice**: Test Chinese typing skills with curated text snippets, real-time CPM/accuracy tracking, and IME-friendly input handling.
+- **Typing Practice**: Test Chinese typing skills with curated text snippets, real-time CPM/accuracy tracking, IME-friendly input handling, and hover-to-preview character decomposition.
 - **Assets**: Per-character SVGs and mapping JSONs, cached for offline use.
 
 ### Tech stack
@@ -94,7 +94,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 
 ### Important files/directories
 
-- **UI**: `src/routes/+page.svelte` (main lookup), `src/routes/typing/+page.svelte` (typing practice), `src/routes/+layout.svelte`
+- **UI**: `src/routes/+page.svelte` (main lookup), `src/routes/typing/+page.svelte` (typing practice with hover-to-preview character decomposition), `src/routes/+layout.svelte`
 - **Components**: `src/lib/CharDecompositionGraph.svelte`, `src/lib/Message.svelte`, `src/lib/Modal.svelte`
 - **Logic/Types**: `src/lib/keyToQuickUnit.ts`, `src/lib/types.ts`, `src/lib/utils.ts`
 - **PWA**: `static/service-worker.js`, `static/manifest.webmanifest`
@@ -114,7 +114,7 @@ Use this at the start of every conversation to stay aligned with the project’s
 
 - Improve search and mapping accuracy; add or correct Quick/Cangjie codes.
 - Enhance decomposition visuals and UX in `+page.svelte` and `CharDecompositionGraph.svelte`.
-- Expand typing practice: add new text sources, adjust snippet extraction rules, improve typing algorithm.
+- Expand typing practice: add new text sources, adjust snippet extraction rules, improve typing algorithm, enhance character preview interactions (e.g. hover-to-preview functionality with debounced state management).
 - Optimize asset loading/caching strategies and service worker updates.
 - Update Cypress tests when UI/flows change.
 

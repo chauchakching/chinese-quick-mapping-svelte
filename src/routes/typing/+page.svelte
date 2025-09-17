@@ -1,5 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/environment';
+  import { page } from '$app/stores';
   import type { NormalizedSnippetsPayload, SnippetSourceMeta } from '$lib/types';
   import {
     calculateCPM,
@@ -11,6 +12,8 @@
     shuffle,
     chineseToParts,
     preloadCharacterImage,
+    simpleHash,
+    findSnippetByHash,
     type TypingTestState
   } from '$lib/utils';
   import { modes } from '$lib/types';
@@ -36,6 +39,8 @@
   let snippets: [string, number][] = $state([]);
   let remainingIndices: number[] = $state([]);
   let currentSnippetIndex = $state(0);
+  let isSpecificSnippet = $state(false); // Track if current snippet was loaded via URL parameter
+  let shareMessage = $state(''); // Message to show when sharing
 
   async function loadSnippets() {
     if (!browser || snippets.length) return;
@@ -45,6 +50,20 @@
         const data: NormalizedSnippetsPayload = await res.json();
         sources = data.sources;
         snippets = data.snippets;
+
+        // Check for snippet parameter in URL
+        const snippetHash = $page.url.searchParams.get('snippet');
+        if (snippetHash) {
+          const snippetIndex = findSnippetByHash(snippets, snippetHash);
+          if (snippetIndex >= 0) {
+            currentSnippetIndex = snippetIndex;
+            isSpecificSnippet = true;
+            testState = resetTypingState();
+            return;
+          }
+        }
+
+        // Default behavior: random selection
         initSnippetOrder();
         pickNextSnippet();
         testState = resetTypingState();
@@ -149,8 +168,14 @@
       // In debug mode, just reset the test state since there's only one snippet
       testState = resetTypingState();
     } else if (snippets.length) {
-      pickNextSnippet();
-      testState = resetTypingState();
+      if (isSpecificSnippet) {
+        // If viewing a specific snippet via URL, just reset the test
+        testState = resetTypingState();
+      } else {
+        // Normal random selection behavior
+        pickNextSnippet();
+        testState = resetTypingState();
+      }
     }
 
     // Auto-focus the input field only if the user clicked after completing a test
@@ -172,6 +197,27 @@
         inputElement.focus();
       }
     }, 100);
+  };
+
+  const shareCurrentSnippet = async () => {
+    if (!currentSnippet || !browser) return;
+
+    const snippetText = currentSnippet[0];
+    const hash = simpleHash(snippetText);
+    const shareUrl = `${window.location.origin}/typing?snippet=${hash}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      shareMessage = '連結已複製到剪貼板！';
+    } catch (err) {
+      // Fallback for older browsers
+      shareMessage = `連結：${shareUrl}`;
+    }
+
+    // Clear the message after 3 seconds
+    setTimeout(() => {
+      shareMessage = '';
+    }, 3000);
   };
 
   // Handle input changes on user interaction
@@ -381,8 +427,26 @@
       </div>
     {/if}
 
+    <!-- Share Message -->
+    {#if shareMessage}
+      <div
+        class="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-center text-sm"
+      >
+        {shareMessage}
+      </div>
+    {/if}
+
     <!-- Control Buttons -->
-    <div class="flex flex-row gap-3 justify-center">
+    <div class="flex flex-row gap-3 justify-center flex-wrap">
+      <button
+        onclick={shareCurrentSnippet}
+        class="flex items-center justify-center px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        data-testid="share-button"
+      >
+        <img src="/icons/link.svg" alt="分享" class="h-4 w-4 mr-2" style="filter: invert(1);" />
+        分享
+      </button>
+
       <button
         onclick={resetTest}
         class="flex items-center justify-center px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
@@ -403,7 +467,7 @@
           class="h-4 w-4 mr-2"
           style="filter: invert(1);"
         />
-        {debugMode ? '重新開始' : '下一個文本'}
+        {debugMode ? '重新開始' : isSpecificSnippet ? '重新開始' : '下一個文本'}
       </button>
     </div>
   </div>
