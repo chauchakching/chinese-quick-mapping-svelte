@@ -1,6 +1,7 @@
 <script lang="ts">
   import '../app.css';
   import Navigation from '$lib/Navigation.svelte';
+  import ToastContainer from '$lib/ToastContainer.svelte';
 
   interface Props {
     children?: import('svelte').Snippet;
@@ -25,3 +26,6 @@
     </a>
   </footer>
 </div>
+
+<!-- Global Toast Container -->
+<ToastContainer />

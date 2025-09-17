@@ -25,7 +25,7 @@
       const response = await fetchCharacterSvg(character);
       if (!response.ok) {
         console.error(`Failed to load combined SVG for ${character}`);
-        svgContainer.innerHTML = '<p class="text-gray-500 text-center">Combined SVG not found</p>';
+        svgContainer.innerHTML = '<p class="text-gray-500 text-center">x</p>';
         return;
       }
 

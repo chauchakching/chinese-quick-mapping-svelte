@@ -16,6 +16,7 @@
     findSnippetByHash,
     type TypingTestState
   } from '$lib/utils';
+  import { showToast } from '$lib/toast';
   import { modes } from '$lib/types';
   import { quickMapping } from '$lib/mappingLoader';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
@@ -40,7 +41,6 @@
   let remainingIndices: number[] = $state([]);
   let currentSnippetIndex = $state(0);
   let isSpecificSnippet = $state(false); // Track if current snippet was loaded via URL parameter
-  let shareMessage = $state(''); // Message to show when sharing
 
   async function loadSnippets() {
     if (!browser || snippets.length) return;
@@ -208,16 +208,11 @@
 
     try {
       await navigator.clipboard.writeText(shareUrl);
-      shareMessage = '連結已複製到剪貼板！';
+      showToast('連結已複製到剪貼板！', 'success');
     } catch (err) {
-      // Fallback for older browsers
-      shareMessage = `連結：${shareUrl}`;
+      // Fallback for older browsers - show the URL in a toast
+      showToast(`連結：${shareUrl}`, 'info', 5000);
     }
-
-    // Clear the message after 3 seconds
-    setTimeout(() => {
-      shareMessage = '';
-    }, 3000);
   };
 
   // Handle input changes on user interaction
@@ -424,15 +419,6 @@
             <div class="font-medium text-gray-800">{progress.filteredChineseText.length} 字</div>
           </div>
         </div>
-      </div>
-    {/if}
-
-    <!-- Share Message -->
-    {#if shareMessage}
-      <div
-        class="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-center text-sm"
-      >
-        {shareMessage}
       </div>
     {/if}
 

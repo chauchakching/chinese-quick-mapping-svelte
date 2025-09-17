@@ -9,15 +9,13 @@
   import { quickMapping } from '$lib/mappingLoader';
   import Modal from '$lib/Modal.svelte';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
-  import Message from '$lib/Message.svelte';
+  import { showToast } from '$lib/toast';
   import charsWithImages from '$lib/chars-with-images.json';
 
   const charsWithImagesSet = new Set(charsWithImages);
 
   const defaultText =
     '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
-
-  let copyResultMessage: { open: () => void } | undefined = $state();
 
   const setQueryParam = (key: string, value: string) => {
     const url = new URL(window.location.href);
@@ -100,17 +98,6 @@
 </svelte:head>
 
 <section>
-  <Message bind:ele={copyResultMessage}>
-    <div class="flex justify-center items-center">
-      <img
-        src="/icons/check.svg"
-        alt="success icon"
-        class="h-4 w-4 mr-2 text-green-500"
-        style="filter: invert(59%) sepia(70%) saturate(487%) hue-rotate(89deg) brightness(90%) contrast(94%)"
-      />
-      <span>已複製連結</span>
-    </div>
-  </Message>
   <div>
     <div>
       <div class="flex flex-row justify-between mb-4">
@@ -119,7 +106,7 @@
             class="flex items-center text-center block border rounded py-1 px-3 hover:bg-gray-200 shadow rounded bg-white"
             onclick={() => {
               userInputText = '';
-              textarea.focus();
+              textarea?.focus();
             }}
           >
             <img src="/icons/trash.svg" alt="清空" class="h-4 w-4 mr-2" />
@@ -132,7 +119,7 @@
               class="text-center block border rounded mr-2 py-1 px-2 hover:bg-gray-200 shadow rounded bg-white"
               onclick={() => {
                 navigator.clipboard.writeText(window.location.href);
-                copyResultMessage.open();
+                showToast('已複製連結', 'success');
               }}
             >
               <img src="/icons/link.svg" alt="複製連結" class="h-4 w-4" />
