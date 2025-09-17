@@ -87,11 +87,18 @@
   // Current character decode logic
   let currentChar = $derived(progress.currentChar);
 
+  // Hover state for character decomposition preview
+  let hoveredChar = $state<string>('');
+  let hoverLeaveTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Character to display in decomposition (prioritize hovered, fallback to current)
+  let displayChar = $derived(hoveredChar || currentChar);
+
   // Next character for preloading
   let nextChar = $derived(progress.filteredChineseText[progress.currentChinesePosition + 1]);
 
-  let currentCharParts = $derived(
-    currentChar ? chineseToParts(quickMapping, modes.cangjie, currentChar).parts : ''
+  let displayCharParts = $derived(
+    displayChar ? chineseToParts(quickMapping, modes.cangjie, displayChar).parts : ''
   );
 
   // Auto-scroll functionality
@@ -169,8 +176,36 @@
 
   // Handle input changes on user interaction
   const onInput = () => {
+    // Clear any pending hover timeout and reset hover state when user starts typing
+    if (hoverLeaveTimeout !== null) {
+      clearTimeout(hoverLeaveTimeout);
+      hoverLeaveTimeout = null;
+    }
+    hoveredChar = '';
     // Do not restrict user input; progression is based on filteredChineseText only
     testState = processTypingInput(testState, progress.filteredChineseText);
+  };
+
+  // Handle character hover for decomposition preview
+  const onCharacterHover = (char: string, isChinese: boolean) => {
+    // Clear any pending timeout to prevent flickering when moving between chars
+    if (hoverLeaveTimeout !== null) {
+      clearTimeout(hoverLeaveTimeout);
+      hoverLeaveTimeout = null;
+    }
+
+    if (isChinese) {
+      hoveredChar = char;
+    }
+  };
+
+  // Handle mouse leave from character with debounce to prevent flickering
+  const onCharacterLeave = () => {
+    // Delay clearing hover state to allow smooth transitions between characters
+    hoverLeaveTimeout = setTimeout(() => {
+      hoveredChar = '';
+      hoverLeaveTimeout = null;
+    }, 150); // 150ms delay to bridge the gap between characters
   };
 
   // Handle input focus - move cursor to end for better mobile UX
@@ -221,10 +256,10 @@
       <div class="mb-2">
         <div class="flex justify-center items-center">
           <div class="bg-gray-50 p-1 rounded-lg border" style="width: 112px; height: 102px;">
-            {#if currentCharParts && currentCharParts.length > 0}
+            {#if displayCharParts && displayCharParts.length > 0}
               <CharDecompositionGraph
-                char={currentChar}
-                parts={currentCharParts}
+                char={displayChar}
+                parts={displayCharParts}
                 imageStyle="width: 80px;"
                 charStyle="font-size: 14px; margin: 2px 3px;"
               />
@@ -249,6 +284,7 @@
           {@const isChinese = charState.isChinese}
           {@const isCompletedChinese = charState.isCompletedChinese}
           {@const isCurrentChinese = charState.isCurrentChinese}
+          {@const isHoveredAndDisplayed = hoveredChar === char}
           <span
             class={`${
               isChinese
@@ -258,7 +294,8 @@
                     ? 'bg-blue-100 text-blue-700 animate-pulse'
                     : 'text-gray-400 opacity-60'
                 : 'text-gray-400 opacity-60'
-            }`}
+            } ${isHoveredAndDisplayed ? 'bg-yellow-100 text-yellow-800' : ''} ${isChinese ? 'cursor-pointer' : ''}`}
+            role={isChinese ? 'button' : undefined}
             data-testid="typing-char"
             data-char-index={i}
             data-char-state={isChinese
@@ -267,7 +304,9 @@
                 : isCurrentChinese
                   ? 'current'
                   : 'pending'
-              : 'neutral'}>{char}</span
+              : 'neutral'}
+            onmouseenter={() => onCharacterHover(char, isChinese)}
+            onmouseleave={onCharacterLeave}>{char}</span
           >
         {/each}
       </div>
