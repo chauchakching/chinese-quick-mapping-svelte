@@ -164,19 +164,21 @@
   const nextText = () => {
     const wasCompleted = testState.isCompleted;
 
-    if (debugMode) {
-      // In debug mode, just reset the test state since there's only one snippet
-      testState = resetTypingState();
-    } else if (snippets.length) {
-      if (isSpecificSnippet) {
-        // If viewing a specific snippet via URL, just reset the test
-        testState = resetTypingState();
-      } else {
-        // Normal random selection behavior
-        pickNextSnippet();
-        testState = resetTypingState();
-      }
+    // If viewing a specific snippet via URL, remove query param and switch to random mode
+    if (isSpecificSnippet) {
+      // Remove snippet query parameter from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('snippet');
+      window.history.replaceState(null, '', url.toString());
+
+      // Switch back to random selection mode
+      isSpecificSnippet = false;
+      initSnippetOrder(); // Initialize random order
     }
+
+    // Normal random selection behavior
+    pickNextSnippet();
+    testState = resetTypingState();
 
     // Auto-focus the input field only if the user clicked after completing a test
     if (wasCompleted) {
@@ -453,7 +455,7 @@
           class="h-4 w-4 mr-2"
           style="filter: invert(1);"
         />
-        {debugMode ? '重新開始' : isSpecificSnippet ? '重新開始' : '下一個文本'}
+        下一個文本
       </button>
     </div>
   </div>
