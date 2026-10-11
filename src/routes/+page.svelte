@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { run } from 'svelte/legacy';
 
   import { browser } from '$app/environment';
@@ -14,8 +15,7 @@
 
   const charsWithImagesSet = new Set(charsWithImages);
 
-  const defaultText =
-    '速成輸入法，或稱簡易輸入法，亦作速成或簡易，為倉頡輸入法演化出來的簡化版本。';
+  const defaultText = '速成倉頡';
 
   const setQueryParam = (key: string, value: string) => {
     const url = new URL(window.location.href);
@@ -56,7 +56,24 @@
   });
 
   // 速成/倉頡
+  const inputModeKey = 'inputMode';
+
+  const isMode = (value: string | null): value is Mode =>
+    value === modes.quick || value === modes.cangjie;
+
   let mode: Mode = $state(modes.quick);
+  let persistMode = $state(false);
+
+  onMount(() => {
+    const stored = localStorage.getItem(inputModeKey);
+    if (isMode(stored)) mode = stored;
+    persistMode = true;
+  });
+
+  $effect(() => {
+    if (!persistMode) return;
+    localStorage.setItem(inputModeKey, mode);
+  });
 
   let charBoxItems = $derived(
     userInputText.split('').map((char) => {
