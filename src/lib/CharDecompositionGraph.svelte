@@ -11,8 +11,14 @@
     endsOnly?: boolean;
   }
 
-  let { char, parts, class: className = '', charStyle, imageStyle, endsOnly = false }: Props =
-    $props();
+  let {
+    char,
+    parts,
+    class: className = '',
+    charStyle,
+    imageStyle,
+    endsOnly = false
+  }: Props = $props();
 
   const mutedFill = '#d1d5db';
 
@@ -138,7 +144,7 @@
       ></div>
     </figure>
   </div>
-  <div class="flex flex-nowrap items-center justify-center">
+  <div class="flex flex-nowrap items-center justify-center mt-4">
     {#each letterEntries as { c, i, colorIndex } (i)}
       <div
         class="text-2xl mt-4 mx-2"
