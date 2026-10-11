@@ -1,6 +1,10 @@
 function expectKeystrokeTranslation(char, keystrokes) {
-  cy.get(`[data-box-char=${char}] :first-child`).should('contain', char);
-  cy.get(`[data-box-char=${char}] :nth-child(2)`).should('contain', keystrokes);
+  cy.get(`[data-box-char=${char}]`).should(($els) => {
+    $els.each((_, el) => {
+      expect(el.textContent).to.contain(char);
+      expect(el.textContent).to.contain(keystrokes);
+    });
+  });
 }
 
 describe('sanity test', () => {

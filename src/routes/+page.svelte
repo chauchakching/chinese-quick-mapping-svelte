@@ -8,7 +8,6 @@
   import { modes, type Mode } from '$lib/types';
   import { chineseToParts, updateInputHistory } from '$lib/utils';
   import { quickMapping } from '$lib/mappingLoader';
-  import Modal from '$lib/Modal.svelte';
   import CharDecompositionGraph from '$lib/CharDecompositionGraph.svelte';
   import { showToast } from '$lib/toast';
   import charsWithImages from '$lib/chars-with-images.json';
@@ -128,13 +127,6 @@
     }
   });
 
-  let modalVisible = $state(false);
-  let modalChar = $state('速');
-
-  const openCharModal = (ch: string) => {
-    modalChar = ch;
-    modalVisible = true;
-  };
 </script>
 
 <svelte:head>
@@ -227,24 +219,33 @@
       </div>
       {#if hasLookupText}
         <div
-          class="flex content-start flex-wrap border rounded-lg bg-white px-2 pt-3 pb-1 shadow-md"
+          class="grid grid-cols-2 gap-3 border rounded-lg bg-white p-3 shadow-md sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]"
           data-testid="char-box-container"
         >
           {#each charBoxItems as { ch, parts }, i (i)}
-            {@const clickable = charsWithImagesSet.has(ch)}
-            <button
-              class={`flex flex-col items-center mx-1 mb-2 px-2.5 py-1.5 ${
-                clickable
-                  ? 'hover:bg-gray-100 border rounded-lg shadow-sm cursor-pointer'
-                  : 'cursor-default'
-              }`}
+            {@const hasImage = charsWithImagesSet.has(ch)}
+            {@const composition = chineseToParts(quickMapping, modes.cangjie, ch).parts}
+            <div
+              class="flex flex-col items-center rounded-lg border border-gray-300 bg-gray-50 px-2 py-3 shadow-sm"
               data-testid="char-box"
               data-box-char={ch}
-              onclick={() => clickable && openCharModal(ch)}
             >
-              <div class="flex flex-row text-2xl leading-8">{ch}</div>
-              <div class="flex flex-row text-xs text-gray-500">{parts}</div>
-            </button>
+              <span class="sr-only">{ch}</span>
+              {#if hasImage}
+                <CharDecompositionGraph
+                  char={ch}
+                  parts={composition}
+                  class="w-full"
+                  imageStyle="width: 100%; aspect-ratio: 96 / 68; height: auto;"
+                  charStyle="font-size: 22px; font-weight: 700; line-height: 1.2; margin: 2px;"
+                />
+              {:else}
+                <div class="flex h-[132px] items-center text-4xl leading-none">{ch}</div>
+              {/if}
+              {#if parts && parts !== composition}
+                <div class="mt-1 text-sm text-gray-500">{parts}</div>
+              {/if}
+            </div>
           {/each}
         </div>
       {:else}
@@ -283,17 +284,4 @@
       <div class="sm:flex-1"></div>
     </div>
   </div>
-  <Modal
-    visible={modalVisible}
-    onClose={() => {
-      modalVisible = false;
-    }}
-  >
-    <div class="w-full my-12 mx-12">
-      <CharDecompositionGraph
-        char={modalChar}
-        parts={chineseToParts(quickMapping, modes.cangjie, modalChar).parts}
-      />
-    </div>
-  </Modal>
 </section>

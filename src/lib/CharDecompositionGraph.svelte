@@ -81,8 +81,8 @@
 </script>
 
 <div class={className}>
-  <div class="flex justify-center items-center w-full h-full">
-    <figure class="justify-center items-center relative">
+  <div class="flex w-full items-center justify-center">
+    <figure class="relative flex w-full items-center justify-center">
       <!-- Container for the combined SVG -->
       <div
         bind:this={svgContainer}
