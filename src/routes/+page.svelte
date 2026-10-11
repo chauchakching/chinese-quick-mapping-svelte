@@ -218,14 +218,21 @@
         ></textarea>
       </div>
       {#if hasLookupText}
+        {@const fewChars = charBoxItems.length <= 2}
         <div
-          class="grid grid-cols-2 gap-3 border rounded-lg bg-white p-3 shadow-md sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]"
+          class="{fewChars
+            ? 'flex flex-wrap justify-center'
+            : 'grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]'} gap-3 rounded-lg border bg-white p-3 shadow-md"
           data-testid="char-box-container"
         >
           {#each charBoxItems as { ch, parts }, i (i)}
             {@const hasImage = charsWithImagesSet.has(ch)}
             <div
-              class="flex flex-col items-center rounded-lg border border-gray-300 bg-gray-50 px-2 py-3 shadow-sm"
+              class="flex flex-col items-center rounded-lg border border-gray-300 bg-gray-50 px-2 py-3 shadow-sm {fewChars
+                ? charBoxItems.length === 1
+                  ? 'w-full max-w-sm'
+                  : 'w-[calc((100%-0.75rem)/2)] sm:w-64'
+                : ''}"
               data-testid="char-box"
               data-box-char={ch}
             >
