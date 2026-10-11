@@ -224,7 +224,6 @@
         >
           {#each charBoxItems as { ch, parts }, i (i)}
             {@const hasImage = charsWithImagesSet.has(ch)}
-            {@const composition = chineseToParts(quickMapping, modes.cangjie, ch).parts}
             <div
               class="flex flex-col items-center rounded-lg border border-gray-300 bg-gray-50 px-2 py-3 shadow-sm"
               data-testid="char-box"
@@ -232,18 +231,22 @@
             >
               <span class="sr-only">{ch}</span>
               {#if hasImage}
+                {@const composition = chineseToParts(quickMapping, modes.cangjie, ch).parts}
                 <CharDecompositionGraph
                   char={ch}
                   parts={composition}
+                  endsOnly={mode === modes.quick}
                   class="w-full"
                   imageStyle="width: 100%; aspect-ratio: 96 / 68; height: auto;"
                   charStyle="font-size: 22px; font-weight: 700; line-height: 1.2; margin: 2px;"
                 />
               {:else}
-                <div class="flex h-[132px] items-center text-4xl leading-none">{ch}</div>
-              {/if}
-              {#if parts && parts !== composition}
-                <div class="mt-1 text-sm text-gray-500">{parts}</div>
+                <div class="flex flex-col items-center justify-center px-2 py-5">
+                  <div class="text-5xl leading-none">{ch}</div>
+                  {#if parts}
+                    <div class="mt-3 text-2xl font-bold tracking-widest text-gray-800">{parts}</div>
+                  {/if}
+                </div>
               {/if}
             </div>
           {/each}

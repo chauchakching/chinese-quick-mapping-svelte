@@ -7,22 +7,91 @@
     class?: string;
     imageStyle?: string;
     charStyle?: string;
+    /** 速成 uses only the first and last part. */
+    endsOnly?: boolean;
   }
 
-  let { char, parts, class: className = '', charStyle, imageStyle }: Props = $props();
+  let { char, parts, class: className = '', charStyle, imageStyle, endsOnly = false }: Props =
+    $props();
+
+  const mutedFill = '#d1d5db';
+
+  const letterEntries = $derived.by(() => {
+    const entries = parts.split('').map((c, i) => ({ c, i, colorIndex: i }));
+    if (endsOnly && entries.length > 2) {
+      return [
+        { ...entries[0], colorIndex: 0 },
+        { ...entries[entries.length - 1], colorIndex: 1 }
+      ];
+    }
+    return entries;
+  });
+
+  const displayColorIndex = (colorIndex: number) => {
+    if (endsOnly && parts.length > 2 && colorIndex === parts.length - 1) return 1;
+    return colorIndex;
+  };
+
+  const isHighlighted = (colorIndex: number) => {
+    if (!endsOnly || parts.length <= 2) return true;
+    return colorIndex === 0 || colorIndex === parts.length - 1;
+  };
 
   let svgContainer: HTMLDivElement;
   let svgElement: SVGElement | null = null;
+  let loadedChar = '';
+  let requestId = 0;
+
+  const mutePart = (group: HTMLElement) => {
+    group.style.opacity = '1';
+    group.style.filter = '';
+    group.style.fill = mutedFill;
+    group.querySelectorAll('path').forEach((path) => {
+      (path as SVGPathElement).style.fill = mutedFill;
+    });
+  };
+
+  const paintParts = (svg: SVGElement) => {
+    svg.style.width = '100%';
+    svg.style.height = '100%';
+
+    svg.querySelectorAll('g[id^="part-"]').forEach((group) => {
+      const htmlGroup = group as HTMLElement;
+      const partNumber = parseInt(htmlGroup.id.replace('part-', ''));
+
+      if (partNumber === 0) {
+        htmlGroup.style.opacity = '0.1';
+        htmlGroup.style.filter = '';
+        htmlGroup.style.fill = '';
+        return;
+      }
+
+      const colorIndex = partNumber - 1;
+      if (colorIndex < 5 && isHighlighted(colorIndex)) {
+        htmlGroup.style.opacity = '1';
+        applyPartColor(htmlGroup, displayColorIndex(colorIndex));
+      } else {
+        mutePart(htmlGroup);
+      }
+    });
+  };
 
   async function loadCombinedSVG(character: string) {
     if (!svgContainer) return;
 
-    // Clear previous content immediately to prevent flash
+    const id = ++requestId;
+    if (svgElement && loadedChar === character) {
+      paintParts(svgElement);
+      return;
+    }
+
     svgContainer.innerHTML = '';
     svgElement = null;
+    loadedChar = '';
 
     try {
       const response = await fetchCharacterSvg(character);
+      if (id !== requestId) return;
       if (!response.ok) {
         console.error(`Failed to load combined SVG for ${character}`);
         svgContainer.innerHTML = '<p class="text-gray-500 text-center">x</p>';
@@ -30,6 +99,7 @@
       }
 
       const svgText = await response.text();
+      if (id !== requestId) return;
       svgContainer.innerHTML = svgText;
 
       svgElement = svgContainer.querySelector('svg');
@@ -38,42 +108,19 @@
         return;
       }
 
-      // Apply base styles to the SVG
-      svgElement.style.width = '100%';
-      svgElement.style.height = '100%';
-
-      // Apply styles to each part group
-      const partGroups = svgElement.querySelectorAll('g[id^="part-"]');
-
-      partGroups.forEach((group, index) => {
-        const htmlGroup = group as HTMLElement;
-        const partId = htmlGroup.id;
-        const partNumber = parseInt(partId.replace('part-', ''));
-
-        if (partNumber === 0) {
-          // Part 0 is the background - low opacity
-          htmlGroup.style.opacity = '0.1';
-          htmlGroup.style.filter = '';
-          htmlGroup.style.fill = '';
-        } else {
-          // Parts 1-5 get color application using direct fill (universal support)
-          const colorIndex = partNumber - 1; // Convert to 0-based index for color array
-          if (colorIndex < 5) {
-            // Apply color using universally-supported fill method
-            applyPartColor(htmlGroup, colorIndex);
-          }
-        }
-      });
+      loadedChar = character;
+      paintParts(svgElement);
     } catch (error) {
       console.error(`Error loading combined SVG for ${character}:`, error);
-      if (svgContainer) {
+      if (svgContainer && id === requestId) {
         svgContainer.innerHTML = '<p class="text-gray-500 text-center">Error loading SVG</p>';
       }
     }
   }
 
-  // React to character changes
   $effect(() => {
+    void endsOnly;
+    void parts;
     if (char && svgContainer) {
       loadCombinedSVG(char);
     }
@@ -91,9 +138,12 @@
       ></div>
     </figure>
   </div>
-  <div class="flex justify-center items-center">
-    {#each parts.split('') as c, i (i)}
-      <div class="text-2xl mt-4 mx-2" style={`color: ${getColor(i)};${charStyle ? charStyle : ''}`}>
+  <div class="flex flex-nowrap items-center justify-center">
+    {#each letterEntries as { c, i, colorIndex } (i)}
+      <div
+        class="text-2xl mt-4 mx-2"
+        style={`color: ${getColor(colorIndex)};${charStyle ? charStyle : ''}`}
+      >
         {c}
       </div>
     {/each}
