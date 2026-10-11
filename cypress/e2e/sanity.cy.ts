@@ -64,7 +64,7 @@ describe('sanity test', () => {
      */
     cy.get('#user-input').should('not.have.value', '');
     cy.getByTestId('char-box').should('not.have.length', 0);
-    cy.get('button').contains('清空').click();
+    cy.get('button[aria-label="清空"]').click();
     cy.get('#user-input').should('have.value', '');
     cy.getByTestId('char-box').should('have.length', 0);
 

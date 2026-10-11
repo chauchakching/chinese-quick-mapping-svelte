@@ -47,12 +47,37 @@
   // dom
   let textarea: HTMLTextAreaElement | undefined = $state();
 
+  const maxInputLines = 6;
+
+  const fitInputHeight = () => {
+    if (!textarea) return;
+    const style = getComputedStyle(textarea);
+    const lineHeight = parseFloat(style.lineHeight);
+    const verticalPadding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    const line = Number.isFinite(lineHeight) ? lineHeight : 28;
+    const pad = Number.isFinite(verticalPadding) ? verticalPadding : 0;
+    const maxHeight = line * maxInputLines + pad;
+    textarea.style.height = 'auto';
+    const needed = textarea.scrollHeight;
+    textarea.style.height = `${Math.min(needed, maxHeight)}px`;
+    textarea.style.overflowY = needed > maxHeight ? 'auto' : 'hidden';
+  };
+
   // auto select text when init
   run(() => {
     if (textarea) {
       textarea.focus();
       textarea.select();
     }
+  });
+
+  $effect(() => {
+    void userInputText;
+    if (!textarea) return;
+    fitInputHeight();
+    const onResize = () => fitInputHeight();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   });
 
   // 速成/倉頡
@@ -74,6 +99,8 @@
     if (!persistMode) return;
     localStorage.setItem(inputModeKey, mode);
   });
+
+  let hasLookupText = $derived(userInputText.trim().length > 0);
 
   let charBoxItems = $derived(
     userInputText.split('').map((char) => {
@@ -117,19 +144,7 @@
 <section>
   <div>
     <div>
-      <div class="flex flex-row justify-between mb-4">
-        <div class="flex flex-row">
-          <button
-            class="flex items-center text-center block border rounded py-1 px-3 hover:bg-gray-200 shadow rounded bg-white"
-            onclick={() => {
-              userInputText = '';
-              textarea?.focus();
-            }}
-          >
-            <img src="/icons/trash.svg" alt="清空" class="h-4 w-4 mr-2" />
-            <span>清空</span>
-          </button>
-        </div>
+      <div class="mb-4 flex flex-row justify-end">
         <div class="flex flex-row">
           {#if typeof navigator !== 'undefined' && !!navigator?.clipboard?.writeText}
             <button
@@ -169,20 +184,50 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="flex flex-col sm:flex-row items-stretch">
-        <div class="flex-1 p-2 border rounded-t sm:rounded-b bg-white shadow-md flex">
-          <textarea
-            id="user-input"
-            placeholder="輸入字句"
-            rows="6"
-            class="w-full outline-none resize-none text-lg"
-            bind:value={userInputText}
-            bind:this={textarea}
-          ></textarea>
-        </div>
+    <div class="flex flex-col gap-4">
+      <div class="relative">
+        <img
+          src="/icons/search.svg"
+          alt=""
+          class="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5"
+        />
+        {#if userInputText.length > 0}
+          <button
+            type="button"
+            aria-label="清空"
+            class="absolute right-0.5 top-0.5 flex h-11 w-11 items-center justify-center"
+            onclick={() => {
+              userInputText = '';
+              textarea?.focus();
+            }}
+          >
+            <span class="flex h-5 w-5 items-center justify-center rounded-full bg-gray-400">
+              <svg viewBox="0 0 12 12" class="h-2.5 w-2.5" aria-hidden="true">
+                <path
+                  d="M3.2 3.2l5.6 5.6M8.8 3.2L3.2 8.8"
+                  stroke="white"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </span>
+          </button>
+        {/if}
+        <textarea
+          id="user-input"
+          placeholder="輸入字句"
+          rows="1"
+          aria-label="輸入字句"
+          class={`block w-full resize-none rounded-lg border border-gray-300 bg-white py-2.5 pl-11 text-lg leading-7 text-gray-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 ${
+            userInputText.length > 0 ? 'pr-12' : 'pr-3'
+          }`}
+          bind:value={userInputText}
+          bind:this={textarea}
+        ></textarea>
+      </div>
+      {#if hasLookupText}
         <div
-          class="flex-1 px-2 pt-3 pb-1 border-l border-r border-b sm:border-0 rounded-b sm:rounded-t sm:ml-4 flex content-start flex-wrap bg-white shadow-md relative"
+          class="flex content-start flex-wrap border rounded-lg bg-white px-2 pt-3 pb-1 shadow-md"
           data-testid="char-box-container"
         >
           {#each charBoxItems as { ch, parts }, i (i)}
@@ -202,7 +247,22 @@
             </button>
           {/each}
         </div>
-      </div>
+      {:else}
+        <div
+          class="flex flex-col items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-white/70 px-4 py-6 text-center"
+        >
+          <div
+            class="flex flex-col items-center rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-gray-300"
+            aria-hidden="true"
+          >
+            <span class="text-2xl leading-8">字</span>
+            <span class="text-xs">字碼</span>
+          </div>
+          <p class="text-sm text-gray-500">
+            輸入文字，查看{mode === modes.quick ? '速成' : '倉頡'}字碼
+          </p>
+        </div>
+      {/if}
     </div>
 
     <div class="flex flex-row flex-wrap items-stretch" data-testid="history-entries">
