@@ -9,6 +9,8 @@
     charStyle?: string;
     /** 速成 uses only the first and last part. */
     endsOnly?: boolean;
+    /** Omit the gap above the part letters. Used by the fixed typing preview. */
+    compact?: boolean;
   }
 
   let {
@@ -17,7 +19,8 @@
     class: className = '',
     charStyle,
     imageStyle,
-    endsOnly = false
+    endsOnly = false,
+    compact = false
   }: Props = $props();
 
   const mutedFill = '#d1d5db';
@@ -144,10 +147,10 @@
       ></div>
     </figure>
   </div>
-  <div class="flex flex-nowrap items-center justify-center mt-4">
+  <div class="flex flex-nowrap items-center justify-center {compact ? '' : 'mt-4'}">
     {#each letterEntries as { c, i, colorIndex } (i)}
       <div
-        class="text-2xl mt-4 mx-2"
+        class="text-2xl mx-2 {compact ? '' : 'mt-4'}"
         style={`color: ${getColor(colorIndex)};${charStyle ? charStyle : ''}`}
       >
         {c}

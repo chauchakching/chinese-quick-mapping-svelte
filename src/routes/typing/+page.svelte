@@ -298,11 +298,12 @@
     {#if showCharImages && !testState.isCompleted}
       <div class="mb-2">
         <div class="flex justify-center items-center">
-          <div class="bg-gray-50 p-1 rounded-lg border" style="width: 112px; height: 102px;">
+          <div class="rounded-lg border bg-gray-50 p-1" style="width: 112px; height: 102px;">
             {#if displayCharParts && displayCharParts.length > 0}
               <CharDecompositionGraph
                 char={displayChar}
                 parts={displayCharParts}
+                compact
                 imageStyle="width: 80px;"
                 charStyle="font-size: 14px; margin: 2px 3px;"
               />
