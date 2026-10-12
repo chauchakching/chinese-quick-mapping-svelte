@@ -105,22 +105,34 @@ const colorAndFilters = [
  * Apply color to SVG part group using direct fill (universal browser support)
  * Simpler and more reliable than CSS filters, works on all browsers including Safari
  */
-export const applyPartColor = (group: HTMLElement, colorIndex: number) => {
-  if (colorIndex < 0 || colorIndex >= colorAndFilters.length) return;
-
-  const color = getColor(colorIndex);
-
-  // Clear any existing filters and apply fill directly
+export const applyFillColor = (group: HTMLElement, color: string) => {
   group.style.filter = '';
   group.style.transform = '';
   group.style.fill = color;
-
-  // Apply fill to all path elements within the group for maximum compatibility
-  const paths = group.querySelectorAll('path');
-  paths.forEach((path) => {
-    (path as unknown as HTMLElement).style.fill = color;
+  group.querySelectorAll('path').forEach((path) => {
+    (path as SVGPathElement).style.fill = color;
   });
 };
+
+export const applyPartColor = (group: HTMLElement, colorIndex: number) => {
+  if (colorIndex < 0 || colorIndex >= colorAndFilters.length) return;
+  applyFillColor(group, getColor(colorIndex));
+};
+
+/**
+ * Keep the hue and mix it toward gray.
+ * Confirmed parts stay identifiable, and the still-active part remains the one that stands out.
+ */
+export function softenColor(hex: string, amount = 0.62): string {
+  const toward = { r: 197, g: 202, b: 211 };
+  const normalized = hex.replace('#', '');
+  const channels = [0, 2, 4].map((start) => parseInt(normalized.slice(start, start + 2), 16));
+  const mixed = channels.map((channel, index) => {
+    const target = [toward.r, toward.g, toward.b][index];
+    return Math.round(channel + (target - channel) * amount);
+  });
+  return `#${mixed.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+}
 
 /**
  * Array utilities
@@ -340,4 +352,79 @@ export async function preloadCharacterImage(char: string): Promise<void> {
  */
 export async function preloadCharacterImages(chars: string[]): Promise<void> {
   await Promise.allSettled(chars.map((char) => preloadCharacterImage(char)));
+}
+
+/** One accepted key in a practice round, and the SVG part it lights. */
+export interface CodeStep {
+  key: string;
+  partIndex: number;
+}
+
+/**
+ * Key sequence the player must press.
+ * 倉頡 uses the full code. 速成 uses the first key and the last key.
+ * partIndex matches combined.svg groups: part-1 is index 0.
+ */
+export function codeSteps(code: string, mode: Mode): CodeStep[] {
+  const letters = code
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
+    .split('');
+  if (letters.length === 0) return [];
+  if (mode === modes.quick) {
+    if (letters.length === 1) return [{ key: letters[0], partIndex: 0 }];
+    return [
+      { key: letters[0], partIndex: 0 },
+      { key: letters[letters.length - 1], partIndex: letters.length - 1 }
+    ];
+  }
+  return letters.map((key, partIndex) => ({ key, partIndex }));
+}
+
+/** Physical key from KeyboardEvent.code, for example KeyM → m. */
+export function letterFromKeyCode(code: string): string | null {
+  const match = /^Key([A-Z])$/.exec(code);
+  return match ? match[1].toLowerCase() : null;
+}
+
+export interface PartPaint {
+  partIndex: number;
+  colorIndex: number;
+}
+
+/**
+ * Palette index for a step. 速成's last key uses the second color,
+ * matching the lookup view, which always paints the two ends as blue then red.
+ */
+export function stepColorIndex(
+  stepIndex: number,
+  stepCount: number,
+  mode: Mode,
+  partIndex: number
+): number {
+  if (mode === modes.quick && stepCount >= 2 && stepIndex === stepCount - 1) return 1;
+  return Math.min(Math.max(partIndex, 0), 4);
+}
+
+export interface PracticeSlot {
+  /** Index of the character in the original snippet. */
+  index: number;
+  char: string;
+}
+
+/** Chinese characters in reading order that have a stored code. */
+export function practiceSlots(text: string, mapping: Record<string, string>): PracticeSlot[] {
+  const slots: PracticeSlot[] = [];
+  const chars = text.split('');
+  for (let index = 0; index < chars.length; index++) {
+    const char = chars[index];
+    if (isChineseChar(char) && /[a-z]/i.test(mapping[char] ?? '')) slots.push({ index, char });
+  }
+  return slots;
+}
+
+/** Null before the player has pressed a letter, so the UI can show a blank instead of 100%. */
+export function accuracyPercent(hits: number, attempts: number): number | null {
+  if (attempts <= 0) return null;
+  return Math.round((hits / attempts) * 100);
 }

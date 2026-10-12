@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { modes } from './types';
 import {
   shuffle,
   calculateCPM,
@@ -8,7 +9,13 @@ import {
   type TypingTestState,
   isChineseChar,
   calculateTypingProgress,
-  getCharacterDisplayState
+  getCharacterDisplayState,
+  codeSteps,
+  letterFromKeyCode,
+  stepColorIndex,
+  practiceSlots,
+  accuracyPercent,
+  softenColor
 } from './utils';
 
 describe('shuffle', () => {
@@ -339,5 +346,86 @@ describe('Typing progress calculation', () => {
     expect(result.filteredChineseText).toBe('靜靜');
     expect(result.typedChineseOnly).toBe('靜靜');
     expect(result.matchedChinesePrefixLen).toBe(2);
+  });
+});
+
+describe('codeSteps', () => {
+  it('uses the full code for cangjie', () => {
+    expect(codeSteps('mtmbc', modes.cangjie)).toEqual([
+      { key: 'm', partIndex: 0 },
+      { key: 't', partIndex: 1 },
+      { key: 'm', partIndex: 2 },
+      { key: 'b', partIndex: 3 },
+      { key: 'c', partIndex: 4 }
+    ]);
+  });
+
+  it('uses the first and last keys for quick', () => {
+    expect(codeSteps('mtmbc', modes.quick)).toEqual([
+      { key: 'm', partIndex: 0 },
+      { key: 'c', partIndex: 4 }
+    ]);
+  });
+
+  it('keeps a one-letter code as a single step in both modes', () => {
+    expect(codeSteps('m', modes.quick)).toEqual([{ key: 'm', partIndex: 0 }]);
+    expect(codeSteps('M', modes.cangjie)).toEqual([{ key: 'm', partIndex: 0 }]);
+  });
+
+  it('returns no steps when the code is empty', () => {
+    expect(codeSteps('', modes.cangjie)).toEqual([]);
+    expect(codeSteps('  ', modes.quick)).toEqual([]);
+  });
+});
+
+describe('letterFromKeyCode', () => {
+  it('reads a physical letter key', () => {
+    expect(letterFromKeyCode('KeyM')).toBe('m');
+    expect(letterFromKeyCode('KeyA')).toBe('a');
+  });
+
+  it('ignores keys that are not letters', () => {
+    expect(letterFromKeyCode('Space')).toBeNull();
+    expect(letterFromKeyCode('Backspace')).toBeNull();
+    expect(letterFromKeyCode('m')).toBeNull();
+  });
+});
+
+describe('stepColorIndex', () => {
+  it('follows part order for cangjie', () => {
+    expect(stepColorIndex(4, 5, modes.cangjie, 4)).toBe(4);
+  });
+
+  it('paints the quick last key with the second color', () => {
+    expect(stepColorIndex(0, 2, modes.quick, 0)).toBe(0);
+    expect(stepColorIndex(1, 2, modes.quick, 4)).toBe(1);
+  });
+});
+
+describe('practiceSlots', () => {
+  const mapping = { 頭: 'mtmbc', 靜: 'abc' };
+
+  it('keeps mapped chinese characters and skips punctuation and unmapped characters', () => {
+    expect(practiceSlots('頭，靜a了', mapping)).toEqual([
+      { index: 0, char: '頭' },
+      { index: 2, char: '靜' }
+    ]);
+  });
+});
+
+describe('softenColor', () => {
+  it('keeps the hue and moves the color toward gray', () => {
+    expect(softenColor('#423BE0')).toBe('#9394d8');
+    expect(softenColor('#E31B36')).toBe('#d08897');
+  });
+});
+
+describe('accuracyPercent', () => {
+  it('returns null before any attempt', () => {
+    expect(accuracyPercent(0, 0)).toBeNull();
+  });
+
+  it('rounds the hit rate', () => {
+    expect(accuracyPercent(2, 3)).toBe(67);
   });
 });

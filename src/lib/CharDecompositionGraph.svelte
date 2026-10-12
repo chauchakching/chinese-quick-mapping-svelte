@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { getColor, applyPartColor, fetchCharacterSvg } from './utils';
+  import {
+    getColor,
+    applyPartColor,
+    applyFillColor,
+    softenColor,
+    fetchCharacterSvg,
+    type PartPaint
+  } from './utils';
 
   export interface Props {
     char: string;
@@ -11,6 +18,19 @@
     endsOnly?: boolean;
     /** Omit the gap above the part letters. Used by the fixed typing preview. */
     compact?: boolean;
+    /**
+     * When set, paint only these parts. Omit the prop to keep the lookup-page
+     * behavior of coloring every part (or the two ends when endsOnly is set).
+     */
+    litParts?: PartPaint[];
+    /** Next part to show before it is typed. */
+    hintPart?: PartPaint | null;
+    /** 提示 pulses that part. 正常 holds it still. */
+    pulseHint?: boolean;
+    /** Practice hides the radical letters so the shape is the hint, not the name. */
+    showLetters?: boolean;
+    /** Confirmed parts keep their hue at a lower strength, so the active part stays dominant. */
+    dimLit?: boolean;
   }
 
   let {
@@ -20,7 +40,12 @@
     charStyle,
     imageStyle,
     endsOnly = false,
-    compact = false
+    compact = false,
+    litParts,
+    hintPart = null,
+    pulseHint = false,
+    showLetters = true,
+    dimLit = false
   }: Props = $props();
 
   const mutedFill = '#d1d5db';
@@ -55,32 +80,75 @@
     group.style.opacity = '1';
     group.style.filter = '';
     group.style.fill = mutedFill;
+    group.dataset.tone = '';
     group.querySelectorAll('path').forEach((path) => {
       (path as SVGPathElement).style.fill = mutedFill;
     });
   };
 
+  const hidePart = (group: HTMLElement) => {
+    group.style.opacity = '0';
+    group.style.filter = '';
+    group.style.fill = '';
+    group.dataset.tone = '';
+    group.querySelectorAll('path').forEach((path) => {
+      (path as SVGPathElement).style.fill = '';
+    });
+  };
+
+  const paintOne = (
+    group: HTMLElement,
+    colorIndex: number,
+    state: 'lit' | 'hint',
+    dim = false,
+    pulse = false
+  ) => {
+    group.style.opacity = '1';
+    if (dim) applyFillColor(group, softenColor(getColor(colorIndex)));
+    else applyPartColor(group, colorIndex);
+    group.classList.toggle('part-hint', pulse);
+    group.dataset.state = state;
+    group.dataset.tone = dim ? 'soft' : 'full';
+  };
+
   const paintParts = (svg: SVGElement) => {
+    svg.style.display = 'block';
     svg.style.width = '100%';
     svg.style.height = '100%';
+    const progressive = litParts !== undefined;
 
     svg.querySelectorAll('g[id^="part-"]').forEach((group) => {
       const htmlGroup = group as HTMLElement;
+      htmlGroup.classList.remove('part-hint');
       const partNumber = parseInt(htmlGroup.id.replace('part-', ''));
 
       if (partNumber === 0) {
         htmlGroup.style.opacity = '0.1';
         htmlGroup.style.filter = '';
         htmlGroup.style.fill = '';
+        htmlGroup.dataset.state = 'base';
         return;
       }
 
-      const colorIndex = partNumber - 1;
-      if (colorIndex < 5 && isHighlighted(colorIndex)) {
-        htmlGroup.style.opacity = '1';
-        applyPartColor(htmlGroup, displayColorIndex(colorIndex));
+      const partIndex = partNumber - 1;
+
+      if (progressive) {
+        const lit = litParts?.find((part) => part.partIndex === partIndex);
+        const hint = hintPart && hintPart.partIndex === partIndex && !lit ? hintPart : null;
+        if (lit) paintOne(htmlGroup, lit.colorIndex, 'lit', dimLit);
+        else if (hint) paintOne(htmlGroup, hint.colorIndex, 'hint', false, pulseHint);
+        else {
+          hidePart(htmlGroup);
+          htmlGroup.dataset.state = 'hidden';
+        }
+        return;
+      }
+
+      if (partIndex < 5 && isHighlighted(partIndex)) {
+        paintOne(htmlGroup, displayColorIndex(partIndex), 'lit');
       } else {
         mutePart(htmlGroup);
+        htmlGroup.dataset.state = 'muted';
       }
     });
   };
@@ -128,8 +196,15 @@
   }
 
   $effect(() => {
-    void endsOnly;
-    void parts;
+    const paintKey = [
+      endsOnly,
+      parts,
+      hintPart ? `${hintPart.partIndex}:${hintPart.colorIndex}` : '',
+      pulseHint ? 'pulse' : 'still',
+      dimLit ? 'dim' : 'vivid',
+      (litParts ?? []).map((part) => `${part.partIndex}:${part.colorIndex}`).join(',')
+    ].join('|');
+    void paintKey;
     if (char && svgContainer) {
       loadCombinedSVG(char);
     }
@@ -147,14 +222,16 @@
       ></div>
     </figure>
   </div>
-  <div class="flex flex-nowrap items-center justify-center {compact ? '' : 'mt-4'}">
-    {#each letterEntries as { c, i, colorIndex } (i)}
-      <div
-        class="text-2xl mx-2 {compact ? '' : 'mt-4'}"
-        style={`color: ${getColor(colorIndex)};${charStyle ? charStyle : ''}`}
-      >
-        {c}
-      </div>
-    {/each}
-  </div>
+  {#if showLetters}
+    <div class="flex flex-nowrap items-center justify-center {compact ? '' : 'mt-4'}">
+      {#each letterEntries as { c, i, colorIndex } (i)}
+        <div
+          class="text-2xl mx-2 {compact ? '' : 'mt-4'}"
+          style={`color: ${getColor(colorIndex)};${charStyle ? charStyle : ''}`}
+        >
+          {c}
+        </div>
+      {/each}
+    </div>
+  {/if}
 </div>

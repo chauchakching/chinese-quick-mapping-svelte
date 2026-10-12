@@ -26,3 +26,6 @@ export const keyToQuickUnit: Record<string, string | undefined> = {
   n: '弓',
   m: '一'
 };
+
+/** QWERTY rows, matching the physical Cangjie key positions. */
+export const cangjieKeyboardRows = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'] as const;

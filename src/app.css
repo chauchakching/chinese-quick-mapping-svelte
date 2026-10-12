@@ -6,3 +6,49 @@ body {
   height: 100vh;
   background: linear-gradient(to top, #86ffe5, #fbffd6) fixed; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
+
+@keyframes part-hint-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.part-hint {
+  animation: part-hint-pulse 1.1s ease-in-out infinite;
+}
+
+/* macOS login shake: linear, a few lateral passes, last pass smaller. 0.4s so a mistype stays brief. */
+@keyframes key-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  8%,
+  41% {
+    transform: translateX(-6px);
+  }
+  25%,
+  58% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+  92% {
+    transform: translateX(3px);
+  }
+}
+
+.key-shake {
+  animation: key-shake 0.4s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key-shake {
+    animation: none;
+  }
+}
