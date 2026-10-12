@@ -229,9 +229,7 @@
             {@const hasImage = charsWithImagesSet.has(ch)}
             <div
               class="flex flex-col items-center rounded-lg border border-gray-300 bg-gray-50 px-2 py-3 shadow-sm {fewChars
-                ? charBoxItems.length === 1
-                  ? 'w-full max-w-sm'
-                  : 'w-[calc((100%-0.75rem)/2)] sm:w-64'
+                ? 'w-[calc((100%-0.75rem)/2)] sm:w-64'
                 : ''}"
               data-testid="char-box"
               data-box-char={ch}

@@ -236,7 +236,7 @@ describe('sanity test', () => {
     cy.visit(`http://localhost:3000/?q=${encodeURIComponent('香')}`);
     cy.getByTestId('char-box').should('have.length', 1);
     cy.getByTestId('char-box-container').should('have.class', 'justify-center');
-    cy.getByTestId('char-box').should('have.class', 'max-w-sm');
+    cy.getByTestId('char-box').should('have.class', 'sm:w-64');
     expectCompositionLetters('香', '竹日');
     cy.get('[data-box-char=香] svg').should('exist');
   });
