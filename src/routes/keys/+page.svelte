@@ -198,10 +198,13 @@
     if (!textDisplayElement) return;
     const current = textDisplayElement.querySelector('[data-char-state="current"]');
     if (!(current instanceof HTMLElement)) return;
+    const lineHeight = parseFloat(getComputedStyle(textDisplayElement).lineHeight);
+    if (!Number.isFinite(lineHeight) || lineHeight <= 0) return;
     const box = textDisplayElement.getBoundingClientRect();
     const rect = current.getBoundingClientRect();
-    if (rect.top < box.top) textDisplayElement.scrollTop -= box.top - rect.top;
-    else if (rect.bottom > box.bottom) textDisplayElement.scrollTop += rect.bottom - box.bottom;
+    const glyphTop = rect.top - box.top + textDisplayElement.scrollTop;
+    const line = Math.floor((glyphTop + rect.height / 2) / lineHeight);
+    textDisplayElement.scrollTop = line * lineHeight;
   });
 
   function setMode(next: Mode) {
@@ -339,15 +342,16 @@
 <svelte:window onkeydown={onKeyDown} />
 
 <section class="w-full max-w-xl mx-auto {showKeyboard ? 'pb-48' : 'pb-8'}">
-  <div class="bg-white rounded-lg shadow-md p-4 mb-4">
+  <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
     {#if ready}
-      <div class="flex flex-wrap items-center justify-center gap-3 mb-3">
-        <div class="flex" role="group" aria-label="輸入法">
+      <div class="mb-4 flex flex-wrap items-center gap-2">
+        <div class="flex h-11 rounded-full bg-neutral-100 p-1" role="group" aria-label="輸入法">
           <button
             type="button"
-            class={`min-h-11 px-4 border border-slate-300 rounded-l shadow ${
-              mode === modes.quick ? 'text-white bg-slate-500' : 'bg-white hover:bg-gray-200'
-            }`}
+            class="rounded-full px-3.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 {mode ===
+            modes.quick
+              ? 'bg-white text-neutral-900 shadow-sm'
+              : 'text-neutral-500 hover:text-neutral-800'}"
             aria-pressed={mode === modes.quick}
             data-testid="mode-quick"
             onclick={() => setMode(modes.quick)}
@@ -356,9 +360,10 @@
           </button>
           <button
             type="button"
-            class={`min-h-11 px-4 border border-slate-300 rounded-r shadow -ml-px ${
-              mode === modes.cangjie ? 'text-white bg-slate-500' : 'bg-white hover:bg-gray-200'
-            }`}
+            class="rounded-full px-3.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 {mode ===
+            modes.cangjie
+              ? 'bg-white text-neutral-900 shadow-sm'
+              : 'text-neutral-500 hover:text-neutral-800'}"
             aria-pressed={mode === modes.cangjie}
             data-testid="mode-cangjie"
             onclick={() => setMode(modes.cangjie)}
@@ -366,60 +371,49 @@
             倉頡
           </button>
         </div>
-        <div class="flex" role="group" aria-label="提示">
-          <button
-            type="button"
-            class={`min-h-11 px-4 border border-slate-300 rounded-l shadow ${
-              assist ? 'text-white bg-slate-500' : 'bg-white hover:bg-gray-200'
-            }`}
-            aria-pressed={assist}
-            data-testid="assist-on"
-            onclick={() => (assist = true)}
-          >
-            提示
-          </button>
-          <button
-            type="button"
-            class={`min-h-11 px-4 border border-slate-300 rounded-r shadow -ml-px ${
-              !assist ? 'text-white bg-slate-500' : 'bg-white hover:bg-gray-200'
-            }`}
-            aria-pressed={!assist}
-            data-testid="assist-off"
-            onclick={() => (assist = false)}
-          >
-            正常
-          </button>
-        </div>
+        <button
+          type="button"
+          class="h-11 rounded-full px-3.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 {assist
+            ? 'bg-neutral-900 text-white'
+            : 'text-neutral-500 hover:bg-neutral-100'}"
+          aria-pressed={assist}
+          data-testid={assist ? 'assist-on' : 'assist-off'}
+          onclick={() => (assist = !assist)}
+        >
+          提示
+        </button>
+        {#if !isCompleted}
+          <div class="ml-auto flex items-center">
+            <button
+              type="button"
+              onclick={resetTest}
+              class="flex h-11 w-11 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              data-testid="reset-button"
+              aria-label="重新開始"
+            >
+              <img src="/icons/refresh.svg" alt="" class="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onclick={shareCurrentSnippet}
+              class="flex h-11 w-11 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              data-testid="share-button"
+              aria-label="分享"
+            >
+              <img src="/icons/link.svg" alt="" class="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onclick={nextText}
+              class="flex h-11 w-11 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400"
+              data-testid="next-text-button"
+              aria-label="下一個文本"
+            >
+              <img src="/icons/arrow-right.svg" alt="" class="h-5 w-5" />
+            </button>
+          </div>
+        {/if}
       </div>
-
-      {#if !isCompleted}
-        <div class="flex flex-wrap justify-center gap-2 mb-3">
-        <button
-          type="button"
-          onclick={shareCurrentSnippet}
-          class="min-h-11 px-3 text-sm border border-slate-300 bg-white text-slate-700 rounded-lg hover:bg-slate-50"
-          data-testid="share-button"
-        >
-          分享
-        </button>
-        <button
-          type="button"
-          onclick={resetTest}
-          class="min-h-11 px-3 text-sm border border-slate-300 bg-white text-slate-700 rounded-lg hover:bg-slate-50"
-          data-testid="reset-button"
-        >
-          重新開始
-        </button>
-        <button
-          type="button"
-          onclick={nextText}
-          class="min-h-11 px-3 text-sm border border-slate-300 bg-white text-slate-700 rounded-lg hover:bg-slate-50"
-          data-testid="next-text-button"
-        >
-          下一個文本
-        </button>
-        </div>
-      {/if}
     {/if}
 
     {#if loadError}
@@ -497,12 +491,15 @@
       {/if}
 
       <div
-        bind:this={textDisplayElement}
-        class="bg-gray-50 p-3 rounded-lg border text-lg leading-relaxed font-mono {isCompleted
-          ? ''
-          : 'mb-3 h-16 overflow-y-auto'}"
+        class={isCompleted ? 'rounded-lg border bg-gray-50 p-3' : 'mb-2 px-1'}
         data-testid="keys-text-display"
       >
+        <div
+          bind:this={textDisplayElement}
+          class="font-mono text-lg leading-relaxed {isCompleted
+            ? ''
+            : 'h-[1lh] overflow-y-auto'}"
+        >
         {#each currentText.split('') as char, index (index)}
           {@const ordinal = slotOrdinal[index]}
           {@const isPractice = ordinal !== undefined}
@@ -524,6 +521,7 @@
               : 'neutral'}>{char}</span
           >
         {/each}
+        </div>
       </div>
 
       {#if currentSlot}
@@ -532,7 +530,7 @@
         </p>
 
         <div class="mb-3 flex justify-center" data-testid="keys-stage">
-          <div class="w-52 rounded-lg border border-gray-200 bg-gray-50 p-4" data-testid="keys-graph">
+          <div class="w-60 p-4" data-testid="keys-graph">
             {#if radicalParts}
               <CharDecompositionGraph
                 char={currentSlot.char}
