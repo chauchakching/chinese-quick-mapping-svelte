@@ -224,7 +224,7 @@ describe('sanity test', () => {
     cy.reload();
     cy.get('button').contains('倉頡').should('have.class', 'bg-slate-500');
     cy.get('button').contains('速成').should('not.have.class', 'bg-slate-500');
-    expectCompositionLetters('倉', '人一日口');
+    expectCompositionLetters('倉', '人戈日口');
 
     cy.get('button').contains('速成').click();
     cy.reload();
