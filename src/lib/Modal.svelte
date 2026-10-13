@@ -15,7 +15,7 @@
 </script>
 
 <div
-  class={`fixed z-10 w-full h-full left-0 top-0 p-8 flex items-center justify-center ${
+  class={`fixed z-30 w-full h-full left-0 top-0 p-8 flex items-center justify-center ${
     !visible ? 'pointer-events-none opacity-0' : ''
   }`}
   data-testid="modal"
@@ -26,11 +26,15 @@
   aria-modal={visible}
   tabindex="-1"
 >
-  <button
-    class={`${visible ? '' : 'hidden '}bg-white rounded flex flex-col items-center justify-center`}
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+  <div
+    class={`${visible ? '' : 'hidden '}rounded-2xl bg-white shadow-lg`}
+    onclick={(event) => event.stopPropagation()}
+    onkeydown={(event) => event.stopPropagation()}
+    role="document"
   >
     {#if children}
       {@render children()}
     {/if}
-  </button>
+  </div>
 </div>

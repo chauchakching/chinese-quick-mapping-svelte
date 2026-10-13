@@ -11,7 +11,7 @@
 </script>
 
 <div class="flex flex-col items-center h-screen mx-auto max-w-4xl">
-  <header>
+  <header class="w-full max-w-lg px-4 sm:px-0">
     <h1 class="text-5xl text-gray-900 text-center pt-12 pb-6 sm:pt-24 sm:pb-8">速成查字</h1>
     <Navigation />
   </header>

@@ -4,22 +4,24 @@
   const navItems = [
     { href: '/', label: '查字', icon: '/icons/search.svg' },
     { href: '/typing', label: '練打字', icon: '/icons/fire.svg' },
-    { href: '/keys', label: '拆碼', icon: '/icons/keys.svg' }
+    { href: '/practice', label: '練拆碼', icon: '/icons/keys.svg' }
   ];
 
   $: currentPath = $page.url.pathname;
 </script>
 
-<nav class="flex justify-center border-b border-gray-200 bg-white w-full">
-  <div class="flex flex-row w-full max-w-md">
+<nav
+  class="flex w-full justify-center overflow-hidden rounded-xl border border-gray-200 bg-white sm:rounded-none sm:border-0 sm:border-b"
+>
+  <div class="flex w-full flex-row">
     {#each navItems as { href, label, icon } (href)}
       {@const isActive =
         (href === '/' && currentPath === '/') || (href !== '/' && currentPath.startsWith(href))}
       <a
         {href}
-        class={`flex-1 min-w-0 flex flex-col items-center justify-center gap-1 px-1 py-2 text-sm transition-colors duration-200 ${
+        class={`relative flex flex-1 flex-col items-center justify-center gap-1 whitespace-nowrap px-3 py-2.5 text-sm transition-colors duration-200 ${
           isActive
-            ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+            ? 'bg-blue-50 text-blue-600 sm:border-b-2 sm:border-blue-600'
             : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
         }`}
         data-sveltekit-prefetch
@@ -32,8 +34,9 @@
           />
         {/if}
         <span class="font-medium leading-none">{label}</span>
-        {#if href === '/typing'}
-          <span class="text-[10px] leading-none font-bold text-white bg-red-500 rounded px-1 py-0.5"
+        {#if href === '/practice'}
+          <span
+            class="absolute right-1.5 top-1 rounded bg-red-500 px-1 py-0.5 text-[9px] font-bold leading-none text-white"
             >NEW</span
           >
         {/if}
