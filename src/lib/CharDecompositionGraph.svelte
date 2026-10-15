@@ -162,6 +162,7 @@
       return;
     }
 
+    // eslint-disable-next-line svelte/no-dom-manipulating
     svgContainer.innerHTML = '';
     svgElement = null;
     loadedChar = '';
@@ -171,12 +172,14 @@
       if (id !== requestId) return;
       if (!response.ok) {
         console.error(`Failed to load combined SVG for ${character}`);
+        // eslint-disable-next-line svelte/no-dom-manipulating
         svgContainer.innerHTML = '<p class="text-gray-500 text-center">x</p>';
         return;
       }
 
       const svgText = await response.text();
       if (id !== requestId) return;
+      // eslint-disable-next-line svelte/no-dom-manipulating
       svgContainer.innerHTML = svgText;
 
       svgElement = svgContainer.querySelector('svg');
@@ -190,6 +193,7 @@
     } catch (error) {
       console.error(`Error loading combined SVG for ${character}:`, error);
       if (svgContainer && id === requestId) {
+        // eslint-disable-next-line svelte/no-dom-manipulating
         svgContainer.innerHTML = '<p class="text-gray-500 text-center">Error loading SVG</p>';
       }
     }

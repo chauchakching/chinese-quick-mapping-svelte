@@ -364,7 +364,9 @@
 
 <svelte:window onkeydown={onKeyDown} />
 
-<section class="practice-shell w-full max-w-xl mx-auto {showKeyboard ? 'practice-shell-keyboard' : ''}">
+<section
+  class="practice-shell w-full max-w-xl mx-auto {showKeyboard ? 'practice-shell-keyboard' : ''}"
+>
   <div class="bg-white rounded-2xl shadow-sm p-4 mb-4">
     {#if ready && !roundOver}
       <div class="mb-4 flex flex-nowrap items-center gap-2">
@@ -523,47 +525,49 @@
           bind:this={textDisplayElement}
           class="font-mono text-lg leading-relaxed {roundOver ? '' : 'h-[1lh] overflow-y-auto'}"
         >
-        {#each currentText.split('') as char, index (index)}
-          {@const ordinal = slotOrdinal[index]}
-          {@const isPractice = ordinal !== undefined}
-          {@const isDone = isPractice && ordinal < charIndex}
-          {@const isCurrent = isPractice && !roundOver && ordinal === charIndex}
-          {@const missed = roundOver && isDone && oneShotFlags[ordinal] === false}
-          {@const canOpen = roundOver && isPractice}
-          {@const charClass = missed
-            ? 'bg-red-50 text-red-700'
-            : isDone && !roundOver
-              ? 'bg-green-50 text-green-700'
-              : isCurrent
-                ? 'bg-blue-100 text-blue-700'
-                : roundOver && isDone
-                  ? 'text-neutral-900'
-                  : 'text-gray-400 opacity-60'}
-          {@const charState = isPractice
-            ? missed
-              ? 'missed'
-              : isDone
-                ? roundOver
-                  ? 'clean'
-                  : 'completed'
+          {#each currentText.split('') as char, index (index)}
+            {@const ordinal = slotOrdinal[index]}
+            {@const isPractice = ordinal !== undefined}
+            {@const isDone = isPractice && ordinal < charIndex}
+            {@const isCurrent = isPractice && !roundOver && ordinal === charIndex}
+            {@const missed = roundOver && isDone && oneShotFlags[ordinal] === false}
+            {@const canOpen = roundOver && isPractice}
+            {@const charClass = missed
+              ? 'bg-red-50 text-red-700'
+              : isDone && !roundOver
+                ? 'bg-green-50 text-green-700'
                 : isCurrent
-                  ? 'current'
-                  : 'pending'
-            : 'neutral'}
-          {#if canOpen}
-            <button
-              type="button"
-              class="inline cursor-pointer border-0 p-0 font-[inherit] leading-[inherit] {charClass}"
-              data-testid="keys-char"
-              data-char-state={charState}
-              onclick={() => (detailChar = char)}
-            >
-              {char}
-            </button>
-          {:else}
-            <span class={charClass} data-testid="keys-char" data-char-state={charState}>{char}</span>
-          {/if}
-        {/each}
+                  ? 'bg-blue-100 text-blue-700'
+                  : roundOver && isDone
+                    ? 'text-neutral-900'
+                    : 'text-gray-400 opacity-60'}
+            {@const charState = isPractice
+              ? missed
+                ? 'missed'
+                : isDone
+                  ? roundOver
+                    ? 'clean'
+                    : 'completed'
+                  : isCurrent
+                    ? 'current'
+                    : 'pending'
+              : 'neutral'}
+            {#if canOpen}
+              <button
+                type="button"
+                class="inline cursor-pointer border-0 p-0 font-[inherit] leading-[inherit] {charClass}"
+                data-testid="keys-char"
+                data-char-state={charState}
+                onclick={() => (detailChar = char)}
+              >
+                {char}
+              </button>
+            {:else}
+              <span class={charClass} data-testid="keys-char" data-char-state={charState}
+                >{char}</span
+              >
+            {/if}
+          {/each}
         </div>
       </div>
 
@@ -725,32 +729,6 @@
 {/if}
 
 <style>
-  .hint-glass {
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.5;
-    stroke-linejoin: round;
-  }
-
-  .hint-lit {
-    color: #a16207;
-    background-color: #fffbeb;
-    box-shadow: 0 0 8px rgba(251, 191, 36, 0.28);
-  }
-
-  .hint-lit .hint-glass {
-    fill: #fef3c7;
-    stroke: #d97706;
-  }
-
-  .hint-lit .hint-filament {
-    stroke: #d97706;
-  }
-
-  .hint-lit .hint-bulb {
-    filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.45));
-  }
-
   /* Touch-first phones and tablets. A mouse or trackpad keeps the physical keyboard only. */
   .practice-shell {
     padding-bottom: 2rem;

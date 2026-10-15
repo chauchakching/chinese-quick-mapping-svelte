@@ -218,17 +218,18 @@ describe('sanity test', () => {
 
   it('remembers the input method', () => {
     cy.visit('http://localhost:3000');
-    cy.get('button').contains('速成').should('have.class', 'bg-slate-500');
+    cy.getByTestId('mode-quick').should('have.attr', 'aria-pressed', 'true');
+    cy.getByTestId('mode-cangjie').should('have.attr', 'aria-pressed', 'false');
 
-    cy.get('button').contains('倉頡').click();
+    cy.getByTestId('mode-cangjie').click();
     cy.reload();
-    cy.get('button').contains('倉頡').should('have.class', 'bg-slate-500');
-    cy.get('button').contains('速成').should('not.have.class', 'bg-slate-500');
+    cy.getByTestId('mode-cangjie').should('have.attr', 'aria-pressed', 'true');
+    cy.getByTestId('mode-quick').should('have.attr', 'aria-pressed', 'false');
     expectCompositionLetters('倉', '人戈日口');
 
-    cy.get('button').contains('速成').click();
+    cy.getByTestId('mode-quick').click();
     cy.reload();
-    cy.get('button').contains('速成').should('have.class', 'bg-slate-500');
+    cy.getByTestId('mode-quick').should('have.attr', 'aria-pressed', 'true');
     expectCompositionLetters('倉', '人口');
   });
 

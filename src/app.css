@@ -52,3 +52,29 @@ body {
     animation: none;
   }
 }
+
+.hint-glass {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.hint-lit {
+  color: #a16207;
+  background-color: #fffbeb;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.28);
+}
+
+.hint-lit .hint-glass {
+  fill: #fef3c7;
+  stroke: #d97706;
+}
+
+.hint-lit .hint-filament {
+  stroke: #d97706;
+}
+
+.hint-lit .hint-bulb {
+  filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.45));
+}

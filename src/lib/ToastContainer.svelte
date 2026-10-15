@@ -52,7 +52,7 @@
     const currentToasts = $toasts.toasts;
 
     // Add new toasts
-    currentToasts.forEach((toast, index) => {
+    currentToasts.forEach((toast) => {
       const existing = visibleToasts.find((v) => v.id === toast.id);
       if (!existing) {
         const newToast = {

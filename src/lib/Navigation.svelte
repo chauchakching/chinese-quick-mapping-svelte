@@ -7,11 +7,11 @@
     { href: '/practice', label: '練拆碼', icon: '/icons/keys.svg' }
   ];
 
-  $: currentPath = $page.url.pathname;
+  let currentPath = $derived($page.url.pathname);
 </script>
 
 <nav
-  class="flex w-full justify-center overflow-hidden rounded-xl border border-gray-200 bg-white sm:rounded-none sm:border-0 sm:border-b"
+  class="flex w-full justify-center overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm sm:rounded-none sm:border-0 sm:border-b sm:shadow-none"
 >
   <div class="flex w-full flex-row">
     {#each navItems as { href, label, icon } (href)}

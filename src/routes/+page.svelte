@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { run } from 'svelte/legacy';
+  import { onMount, untrack } from 'svelte';
 
   import { browser } from '$app/environment';
   import { page } from '$app/stores';
@@ -23,21 +22,13 @@
   };
 
   // Text to convert
-  // Initialize with defaultText, will update with query param in browser
-  let userInputText = $state(defaultText);
-
-  // On client-side, check for query param
-  run(() => {
-    if (browser) {
-      const queryParam = $page.url.searchParams.get('q');
-      if (queryParam) {
-        userInputText = queryParam;
-      }
-    }
-  });
+  // Initialize with query param on client if non-empty, otherwise defaultText
+  let userInputText = $state(
+    browser && $page.url.searchParams.get('q') ? $page.url.searchParams.get('q')! : defaultText
+  );
 
   // on text change, update query param "q"
-  run(() => {
+  $effect(() => {
     if (userInputText !== defaultText && typeof window !== 'undefined') {
       setQueryParam('q', userInputText);
     }
@@ -62,14 +53,6 @@
     textarea.style.overflowY = needed > maxHeight ? 'auto' : 'hidden';
   };
 
-  // auto select text when init
-  run(() => {
-    if (textarea) {
-      textarea.focus();
-      textarea.select();
-    }
-  });
-
   $effect(() => {
     void userInputText;
     if (!textarea) return;
@@ -92,6 +75,11 @@
     const stored = localStorage.getItem(inputModeKey);
     if (isMode(stored)) mode = stored;
     persistMode = true;
+
+    if (textarea) {
+      textarea.focus();
+      textarea.select();
+    }
   });
 
   $effect(() => {
@@ -113,75 +101,77 @@
   );
 
   // update input history on user input change (ignore default text)
-  let inputChanged = $derived(userInputText !== defaultText);
-  run(() => {
-    if (inputChanged) {
-      inputHistory = updateInputHistory(userInputText, inputHistory);
+  $effect(() => {
+    const currentText = userInputText;
+    if (currentText !== defaultText) {
+      inputHistory = updateInputHistory(
+        currentText,
+        untrack(() => inputHistory)
+      );
     }
   });
 
   // save input history to local storage
-  run(() => {
+  $effect(() => {
     if (browser) {
       localStorage.setItem('inputHistory', JSON.stringify(inputHistory));
     }
   });
-
 </script>
 
 <svelte:head>
   <title>速成查字</title>
 </svelte:head>
 
-<section>
+<section class="w-full max-w-xl mx-auto pb-8">
   <div>
-    <div>
-      <div class="mb-4 flex flex-row justify-end">
-        <div class="flex flex-row">
-          {#if typeof navigator !== 'undefined' && !!navigator?.clipboard?.writeText}
-            <button
-              class="text-center block border rounded mr-2 py-1 px-2 hover:bg-gray-200 shadow rounded bg-white"
-              onclick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                showToast('已複製連結', 'success');
-              }}
-            >
-              <img src="/icons/link.svg" alt="複製連結" class="h-4 w-4" />
-            </button>
-          {/if}
-          <div class="flex-0 w-20 -mr-4">
-            <button
-              class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-l ${
-                mode === modes.quick
-                  ? 'text-white bg-slate-500 hover:bg-slate-700'
-                  : 'bg-white hover:bg-gray-200'
-              }`}
-              onclick={() => (mode = modes.quick)}
-            >
-              速成
-            </button>
-          </div>
-          <div class="flex-0 w-20 -mr-3">
-            <button
-              class={`text-center block border border-slate-300 py-1 px-4 shadow rounded-r ${
-                mode === modes.cangjie
-                  ? 'text-white bg-slate-500 hover:bg-slate-700'
-                  : 'bg-white hover:bg-gray-200'
-              }`}
-              onclick={() => (mode = modes.cangjie)}
-            >
-              倉頡
-            </button>
-          </div>
-        </div>
+    <div class="mb-3 flex flex-nowrap items-center justify-between gap-2">
+      <div class="flex h-11 rounded-full bg-neutral-100 p-1" role="group" aria-label="輸入法">
+        <button
+          type="button"
+          class="rounded-full px-3.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 {mode ===
+          modes.quick
+            ? 'bg-white text-neutral-900 shadow-sm'
+            : 'text-neutral-500 hover:text-neutral-800'}"
+          aria-pressed={mode === modes.quick}
+          data-testid="mode-quick"
+          onclick={() => (mode = modes.quick)}
+        >
+          速成
+        </button>
+        <button
+          type="button"
+          class="rounded-full px-3.5 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 {mode ===
+          modes.cangjie
+            ? 'bg-white text-neutral-900 shadow-sm'
+            : 'text-neutral-500 hover:text-neutral-800'}"
+          aria-pressed={mode === modes.cangjie}
+          data-testid="mode-cangjie"
+          onclick={() => (mode = modes.cangjie)}
+        >
+          倉頡
+        </button>
       </div>
+      {#if typeof navigator !== 'undefined' && !!navigator?.clipboard?.writeText}
+        <button
+          type="button"
+          class="inline-flex h-11 items-center gap-1.5 rounded-full border border-neutral-300 bg-white px-3.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50"
+          onclick={() => {
+            navigator.clipboard.writeText(window.location.href);
+            showToast('已複製連結', 'success');
+          }}
+        >
+          <img src="/icons/link.svg" alt="複製連結" class="h-4 w-4" />
+          <span>分享</span>
+        </button>
+      {/if}
     </div>
     <div class="flex flex-col gap-4">
       <div class="relative">
         <img
           src="/icons/search.svg"
           alt=""
-          class="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5"
+          class="pointer-events-none absolute left-4 top-3.5 h-5 w-5"
         />
         {#if userInputText.length > 0}
           <button
@@ -210,8 +200,8 @@
           placeholder="輸入字句"
           rows="1"
           aria-label="輸入字句"
-          class={`block w-full resize-none rounded-lg border border-gray-300 bg-white py-2.5 pl-11 text-lg leading-7 text-gray-900 shadow-[inset_0_1px_2px_rgba(0,0,0,0.06)] outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 ${
-            userInputText.length > 0 ? 'pr-12' : 'pr-3'
+          class={`block w-full resize-none rounded-2xl border border-neutral-200 bg-white py-2.5 pl-11 text-lg leading-7 text-gray-900 shadow-sm outline-none placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 ${
+            userInputText.length > 0 ? 'pr-12' : 'pr-4'
           }`}
           bind:value={userInputText}
           bind:this={textarea}
@@ -222,13 +212,13 @@
         <div
           class="{fewChars
             ? 'flex flex-wrap justify-center'
-            : 'grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]'} gap-3 rounded-lg border bg-white p-3 shadow-md"
+            : 'grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(11rem,1fr))]'} gap-3 rounded-2xl bg-white p-4 shadow-sm"
           data-testid="char-box-container"
         >
           {#each charBoxItems as { ch, parts }, i (i)}
             {@const hasImage = charsWithImagesSet.has(ch)}
             <div
-              class="flex flex-col items-center rounded-lg border border-gray-300 bg-gray-50 px-2 py-3 shadow-sm {fewChars
+              class="flex flex-col items-center rounded-xl border border-neutral-200 bg-neutral-50 px-2 py-3 {fewChars
                 ? 'w-[calc((100%-0.75rem)/2)] sm:w-64'
                 : ''}"
               data-testid="char-box"
@@ -258,10 +248,10 @@
         </div>
       {:else}
         <div
-          class="flex flex-col items-center gap-3 rounded-lg border border-dashed border-gray-300 bg-white/70 px-4 py-6 text-center"
+          class="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white/70 px-4 py-8 text-center"
         >
           <div
-            class="flex flex-col items-center rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-gray-300"
+            class="flex flex-col items-center rounded-xl border border-dashed border-neutral-300 px-3 py-1.5 text-gray-300"
             aria-hidden="true"
           >
             <span class="text-2xl leading-8">字</span>
@@ -274,22 +264,19 @@
       {/if}
     </div>
 
-    <div class="flex flex-row flex-wrap items-stretch" data-testid="history-entries">
-      <div class="flex-1 mt-2">
-        {#each inputHistory as str (str)}
-          <button
-            class="bg-white hover:bg-gray-200 border mr-1 mt-2 px-2 rounded-full truncate"
-            data-testid="history-entry-button"
-            style="max-width: 180px;"
-            onclick={() => {
-              userInputText = str;
-            }}
-          >
-            {str}
-          </button>
-        {/each}
-      </div>
-      <div class="sm:flex-1"></div>
+    <div class="mt-3 flex flex-wrap items-center gap-2" data-testid="history-entries">
+      {#each inputHistory as str (str)}
+        <button
+          type="button"
+          class="h-9 max-w-[180px] truncate rounded-full border border-neutral-200 bg-white px-3.5 text-sm text-neutral-700 shadow-sm hover:bg-neutral-50 hover:text-neutral-950"
+          data-testid="history-entry-button"
+          onclick={() => {
+            userInputText = str;
+          }}
+        >
+          {str}
+        </button>
+      {/each}
     </div>
   </div>
 </section>
